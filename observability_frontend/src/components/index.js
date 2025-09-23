@@ -8,3 +8,6 @@ export { default as AnomalyList } from './anomalies/AnomalyList';
 export { default as AnomalyDetails } from './anomalies/AnomalyDetails';
 export { default as RootCausePanel } from './anomalies/RootCausePanel';
 export { default as AiExplanation } from './anomalies/AiExplanation';
+export { default as FunctionList } from './functions/FunctionList';
+export { default as FunctionDetails } from './functions/FunctionDetails';
+export { default as InvocationsTable } from './functions/InvocationsTable';
