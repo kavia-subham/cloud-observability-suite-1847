@@ -1,39 +1,21 @@
 /* App-specific styling leveraging theme tokens for Bold Ocean Professional aesthetic */
 
 .App {
-  text-align: center;
   background: var(--color-bg);
   color: var(--color-text);
   min-height: 100vh;
   transition: background-color var(--transition-base), color var(--transition-base);
 }
 
+/* Utility for centered hero (legacy sample kept for reference) */
 .App-header {
-  background: var(--gradient-primary);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-  align-items: center;
-  justify-content: center;
-  font-size: var(--text-lg);
-  color: var(--color-text);
-  transition: background-color var(--transition-base);
-  position: relative;
-  padding: var(--space-12) var(--space-8);
-  border-bottom: 1px solid var(--color-border);
+  display: none;
 }
 
 .App-logo {
   height: 40vmin;
   pointer-events: none;
   filter: drop-shadow(0 8px 24px rgba(249,115,22,0.35));
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
 }
 
 .App-link {
@@ -47,14 +29,15 @@
 }
 
 .theme-toggle {
-  position: absolute;
-  top: var(--space-6);
+  position: fixed;
+  z-index: 50;
+  bottom: var(--space-6);
   right: var(--space-6);
   background: var(--btn-bg);
   color: var(--btn-text);
   border: none;
-  border-radius: var(--radius-md);
-  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-full);
+  padding: var(--space-4) var(--space-5);
   font-size: var(--text-sm);
   font-weight: var(--weight-bold);
   cursor: pointer;
@@ -73,17 +56,12 @@
   transform: translateY(0);
 }
 
-@keyframes App-logo-spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
 /* Responsive design for mobile */
 @media (max-width: 768px) {
   .theme-toggle {
-    top: var(--space-4);
+    bottom: var(--space-4);
     right: var(--space-4);
-    padding: var(--space-2) var(--space-4);
+    padding: var(--space-3) var(--space-4);
     font-size: var(--text-xs);
   }
 }
