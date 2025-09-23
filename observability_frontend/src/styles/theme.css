@@ -1,0 +1,130 @@
+@import './tokens.css';
+
+/* Global base styles */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family-sans);
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography utilities */
+.h1 {
+  font-size: var(--text-4xl);
+  line-height: var(--leading-tight);
+  font-weight: var(--weight-extrabold);
+  letter-spacing: -0.02em;
+}
+.h2 {
+  font-size: var(--text-3xl);
+  line-height: var(--leading-tight);
+  font-weight: var(--weight-bold);
+}
+.h3 {
+  font-size: var(--text-2xl);
+  line-height: var(--leading-tight);
+  font-weight: var(--weight-bold);
+}
+.p {
+  font-size: var(--text-md);
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+/* Layout helpers */
+.container {
+  width: min(1200px, 92vw);
+  margin-inline: auto;
+  padding: var(--space-8);
+}
+
+/* Surface and card styles */
+.surface {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-2);
+}
+
+/* High-contrast button styles */
+.btn {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  font-weight: var(--weight-bold);
+  font-size: var(--text-md);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-md);
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  transition: transform var(--transition-fast), box-shadow var(--transition-base), background var(--transition-fast), opacity var(--transition-fast);
+  box-shadow: var(--elevation-2);
+}
+
+.btn:hover {
+  background: var(--btn-bg-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--elevation-3);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.btn-outline:hover {
+  border-color: var(--color-text);
+}
+
+/* Link styles */
+a {
+  color: var(--link-color);
+  text-decoration: none;
+  font-weight: var(--weight-semibold);
+}
+
+a:hover {
+  color: var(--link-hover);
+  text-decoration: underline;
+}
+
+/* App shell helpers for a bold look */
+.app-header {
+  background: var(--gradient-primary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.app-surface-ring {
+  box-shadow: 0 0 0 1px var(--color-border) inset;
+}
+
+/* Accessibility focus ring */
+:focus-visible {
+  outline: 2px solid var(--color-secondary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}

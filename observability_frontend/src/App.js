@@ -4,7 +4,8 @@ import './App.css';
 
 // PUBLIC_INTERFACE
 function App() {
-  const [theme, setTheme] = useState('light');
+  // Default to dark to align with "Bold" Ocean Professional look
+  const [theme, setTheme] = useState('dark');
 
   // Effect to apply theme to document element
   useEffect(() => {
@@ -27,7 +28,8 @@ function App() {
           {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
         </button>
         <img src={logo} className="App-logo" alt="logo" />
-        <p>
+        <p className="h2" style={{ margin: 0 }}>Cloud Observability Suite</p>
+        <p className="text-muted" style={{ marginTop: 'var(--space-2)' }}>
           Edit <code>src/App.js</code> and save to reload.
         </p>
         <p>
