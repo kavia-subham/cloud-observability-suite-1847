@@ -4,3 +4,7 @@ export { default as SLOStatus } from './SLOStatus';
 export { default as CostSummary } from './CostSummary';
 export { default as ServiceGraph } from './topology/ServiceGraph';
 export { default as NodeDetailsPanel } from './topology/NodeDetailsPanel';
+export { default as AnomalyList } from './anomalies/AnomalyList';
+export { default as AnomalyDetails } from './anomalies/AnomalyDetails';
+export { default as RootCausePanel } from './anomalies/RootCausePanel';
+export { default as AiExplanation } from './anomalies/AiExplanation';
