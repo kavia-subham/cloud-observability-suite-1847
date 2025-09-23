@@ -14,3 +14,7 @@ export { default as InvocationsTable } from './functions/InvocationsTable';
 export { default as CostBreakdown } from './cost/CostBreakdown';
 export { default as OptimizationList } from './cost/OptimizationList';
 export { default as WhatIfPanel } from './cost/WhatIfPanel';
+
+export { default as ProfileSection } from './settings/ProfileSection';
+export { default as ThemeToggleSection } from './settings/ThemeToggleSection';
+export { default as NotificationsSection } from './settings/NotificationsSection';
