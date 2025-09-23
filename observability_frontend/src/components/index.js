@@ -11,3 +11,6 @@ export { default as AiExplanation } from './anomalies/AiExplanation';
 export { default as FunctionList } from './functions/FunctionList';
 export { default as FunctionDetails } from './functions/FunctionDetails';
 export { default as InvocationsTable } from './functions/InvocationsTable';
+export { default as CostBreakdown } from './cost/CostBreakdown';
+export { default as OptimizationList } from './cost/OptimizationList';
+export { default as WhatIfPanel } from './cost/WhatIfPanel';
