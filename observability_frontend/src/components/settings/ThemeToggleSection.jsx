@@ -42,21 +42,27 @@ export default function ThemeToggleSection({ onSave, onCancel, initialTheme }) {
   };
 
   return (
-    <section className="w-full bg-[#1F2937] rounded-xl p-5 border border-[#374151]">
-      <header className="mb-4">
-        <h2 className="text-white text-lg font-semibold">Appearance</h2>
-        <p className="text-gray-300 text-sm">
-          Switch theme and customize accent color to match your preference.
-        </p>
+    <section className="w-full rounded-xl border border-[#374151] bg-[#1F2937] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
+      <header className="mb-5 flex items-start gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/20 ring-1 ring-amber-500/30">
+          <span aria-hidden className="text-lg">🎨</span>
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold text-white">Appearance</h2>
+          <p className="text-sm text-gray-300">Switch theme and accent to suit your environment.</p>
+        </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <label className="flex flex-col gap-2">
           <span className="text-sm text-gray-200">Theme</span>
           <select
-            className="bg-black text-white rounded-lg px-3 py-2 border border-[#374151] focus:border-[#F97316] focus:outline-none"
+            className="rounded-lg border border-[#374151] bg-black px-3 py-2 text-white outline-none transition focus:border-[#F97316] focus:shadow-[0_0_0_3px_rgba(249,115,22,0.18)]"
             value={theme}
-            onChange={(e) => { setTheme(e.target.value); setDirty(true); }}
+            onChange={(e) => {
+              setTheme(e.target.value);
+              setDirty(true);
+            }}
           >
             <option value="ocean-professional">Ocean Professional</option>
             <option value="system">System (Auto)</option>
@@ -66,35 +72,50 @@ export default function ThemeToggleSection({ onSave, onCancel, initialTheme }) {
 
         <label className="flex flex-col gap-2">
           <span className="text-sm text-gray-200">Accent</span>
-          <div className="flex gap-3 items-center">
+          <div className="flex items-center gap-3">
             {[
-              { key: 'orange', color: '#F97316' },
-              { key: 'teal', color: '#10B981' },
-              { key: 'red', color: '#EF4444' },
+              { key: 'orange', color: '#F97316', name: 'Orange' },
+              { key: 'teal', color: '#10B981', name: 'Teal' },
+              { key: 'red', color: '#EF4444', name: 'Red' },
             ].map((opt) => (
               <button
                 key={opt.key}
                 type="button"
-                onClick={() => { setAccent(opt.key); setDirty(true); }}
-                className={`w-9 h-9 rounded-full border-2 transition-transform ${accent === opt.key ? 'scale-110 border-white' : 'border-transparent'}`}
-                style={{ backgroundColor: opt.color }}
-                aria-label={`Select ${opt.key} accent`}
-              />
+                onClick={() => {
+                  setAccent(opt.key);
+                  setDirty(true);
+                }}
+                className={`group flex items-center gap-2 rounded-full border px-2 py-1 pr-3 transition-all hover:shadow ${
+                  accent === opt.key ? 'border-white/70 bg-white/10' : 'border-transparent bg-black'
+                }`}
+                aria-label={`Select ${opt.name} accent`}
+                title={opt.name}
+              >
+                <span
+                  className="h-5 w-5 rounded-full border-2 border-white/30"
+                  style={{ backgroundColor: opt.color }}
+                />
+                <span className="text-xs text-gray-300">{opt.name}</span>
+              </button>
             ))}
           </div>
         </label>
       </div>
 
-      <div className="flex gap-3 mt-5">
+      <div className="mt-6 flex gap-3">
         <button
-          className={`px-4 py-2 rounded-lg font-semibold transition-colors ${dirty ? 'bg-[#F97316] text-black hover:bg-[#fb8a3b]' : 'bg-[#374151] text-gray-400 cursor-not-allowed'}`}
+          className={`rounded-lg px-4 py-2 font-semibold shadow transition-all ${
+            dirty
+              ? 'bg-[#F97316] text-black hover:shadow-[0_6px_20px_rgba(249,115,22,0.35)] hover:bg-[#fb8a3b]'
+              : 'bg-[#374151] text-gray-400 cursor-not-allowed'
+          }`}
           disabled={!dirty || saving}
           onClick={handleSave}
         >
           {saving ? 'Saving...' : 'Save'}
         </button>
         <button
-          className="px-4 py-2 rounded-lg font-semibold border border-[#374151] text-white hover:bg-[#111827] transition-colors"
+          className="rounded-lg border border-[#374151] px-4 py-2 font-semibold text-white transition-colors hover:bg-[#111827]"
           onClick={handleCancel}
         >
           Cancel

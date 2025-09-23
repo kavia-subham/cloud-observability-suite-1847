@@ -61,75 +61,83 @@ export default function ProfileSection({ onSave, onCancel, initialData }) {
   };
 
   return (
-    <section className="w-full bg-[#1F2937] rounded-xl p-5 border border-[#374151]">
-      <header className="mb-4">
-        <h2 className="text-white text-lg font-semibold">Profile</h2>
-        <p className="text-gray-300 text-sm">
-          Manage your user information and contact details.
-        </p>
+    <section className="w-full rounded-xl border border-[#374151] bg-[#1F2937] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
+      <header className="mb-5 flex items-start gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/20 ring-1 ring-sky-500/30">
+          <span aria-hidden className="text-lg">👤</span>
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold text-white">Profile</h2>
+          <p className="text-sm text-gray-300">
+            Keep your personal details up to date for accurate notifications and access.
+          </p>
+        </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <label className="flex flex-col gap-2">
-          <span className="text-sm text-gray-200">Full Name</span>
-          <input
-            type="text"
-            className="bg-black text-white placeholder-gray-500 rounded-lg px-3 py-2 border border-[#374151] focus:border-[#F97316] focus:outline-none"
-            value={form.name}
-            onChange={(e) => updateField('name', e.target.value)}
-            placeholder="Your full name"
-          />
-        </label>
-
-        <label className="flex flex-col gap-2">
-          <span className="text-sm text-gray-200">Email</span>
-          <input
-            type="email"
-            className="bg-black text-white placeholder-gray-500 rounded-lg px-3 py-2 border border-[#374151] focus:border-[#F97316] focus:outline-none"
-            value={form.email}
-            onChange={(e) => updateField('email', e.target.value)}
-            placeholder="name@company.com"
-          />
-        </label>
-
-        <label className="flex flex-col gap-2">
-          <span className="text-sm text-gray-200">Title</span>
-          <input
-            type="text"
-            className="bg-black text-white placeholder-gray-500 rounded-lg px-3 py-2 border border-[#374151] focus:border-[#F97316] focus:outline-none"
-            value={form.title}
-            onChange={(e) => updateField('title', e.target.value)}
-            placeholder="Role or position"
-          />
-        </label>
-
-        <label className="flex flex-col gap-2">
-          <span className="text-sm text-gray-200">Organization</span>
-          <input
-            type="text"
-            className="bg-black text-white placeholder-gray-500 rounded-lg px-3 py-2 border border-[#374151] focus:border-[#F97316] focus:outline-none"
-            value={form.org}
-            onChange={(e) => updateField('org', e.target.value)}
-            placeholder="Company or team"
-          />
-        </label>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <Field
+          label="Full Name"
+          placeholder="Your full name"
+          value={form.name}
+          onChange={(v) => updateField('name', v)}
+        />
+        <Field
+          type="email"
+          label="Email"
+          placeholder="name@company.com"
+          value={form.email}
+          onChange={(v) => updateField('email', v)}
+          helper="Used for account recovery and notifications."
+        />
+        <Field
+          label="Title"
+          placeholder="Role or position"
+          value={form.title}
+          onChange={(v) => updateField('title', v)}
+        />
+        <Field
+          label="Organization"
+          placeholder="Company or team"
+          value={form.org}
+          onChange={(v) => updateField('org', v)}
+        />
       </div>
 
-      <div className="flex gap-3 mt-5">
+      <div className="mt-6 flex gap-3">
         <button
-          className={`px-4 py-2 rounded-lg font-semibold transition-colors ${dirty ? 'bg-[#F97316] text-black hover:bg-[#fb8a3b]' : 'bg-[#374151] text-gray-400 cursor-not-allowed'}`}
+          className={`rounded-lg px-4 py-2 font-semibold shadow transition-all ${
+            dirty
+              ? 'bg-[#F97316] text-black hover:shadow-[0_6px_20px_rgba(249,115,22,0.35)] hover:bg-[#fb8a3b]'
+              : 'bg-[#374151] text-gray-400 cursor-not-allowed'
+          }`}
           disabled={!dirty || saving}
           onClick={handleSave}
         >
           {saving ? 'Saving...' : 'Save'}
         </button>
         <button
-          className="px-4 py-2 rounded-lg font-semibold border border-[#374151] text-white hover:bg-[#111827] transition-colors"
+          className="rounded-lg border border-[#374151] px-4 py-2 font-semibold text-white transition-colors hover:bg-[#111827]"
           onClick={handleCancel}
         >
           Cancel
         </button>
       </div>
     </section>
+  );
+}
+
+function Field({ label, helper, value, onChange, placeholder, type = 'text' }) {
+  return (
+    <label className="flex flex-col gap-2">
+      <span className="text-sm text-gray-200">{label}</span>
+      <input
+        type={type}
+        className="rounded-lg border border-[#374151] bg-black px-3 py-2 text-white outline-none transition focus:border-[#F97316] focus:shadow-[0_0_0_3px_rgba(249,115,22,0.18)] placeholder:text-gray-500"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+      />
+      {helper ? <span className="text-xs text-gray-400">{helper}</span> : null}
+    </label>
   );
 }

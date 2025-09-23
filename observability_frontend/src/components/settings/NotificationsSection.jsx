@@ -62,15 +62,20 @@ export default function NotificationsSection({ onSave, onCancel, initialData }) 
   };
 
   return (
-    <section className="w-full bg-[#1F2937] rounded-xl p-5 border border-[#374151]">
-      <header className="mb-4">
-        <h2 className="text-white text-lg font-semibold">Notifications</h2>
-        <p className="text-gray-300 text-sm">
-          Choose how you want to be notified about important events and anomalies.
-        </p>
+    <section className="w-full rounded-xl border border-[#374151] bg-[#1F2937] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
+      <header className="mb-5 flex items-start gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/20 ring-1 ring-emerald-500/30">
+          <span aria-hidden className="text-lg">🔔</span>
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold text-white">Notifications</h2>
+          <p className="text-sm text-gray-300">
+            Choose channels and frequency for anomaly and system alerts.
+          </p>
+        </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Toggle
           id="notif-email"
           label="Email alerts"
@@ -96,10 +101,10 @@ export default function NotificationsSection({ onSave, onCancel, initialData }) 
           onChange={(v) => update('weeklySummary', v)}
         />
 
-        <label className="flex flex-col gap-2 md:col-span-2">
+        <label className="md:col-span-2 flex flex-col gap-2">
           <span className="text-sm text-gray-200">Alert Frequency</span>
           <select
-            className="bg-black text-white rounded-lg px-3 py-2 border border-[#374151] focus:border-[#F97316] focus:outline-none"
+            className="rounded-lg border border-[#374151] bg-black px-3 py-2 text-white outline-none transition focus:border-[#F97316] focus:shadow-[0_0_0_3px_rgba(249,115,22,0.18)]"
             value={prefs.frequency}
             onChange={(e) => update('frequency', e.target.value)}
           >
@@ -107,19 +112,26 @@ export default function NotificationsSection({ onSave, onCancel, initialData }) 
             <option value="hourly">Hourly digest</option>
             <option value="daily">Daily summary</option>
           </select>
+          <span className="text-xs text-gray-400">
+            Real-time sends immediate alerts. Digests bundle alerts to reduce noise.
+          </span>
         </label>
       </div>
 
-      <div className="flex gap-3 mt-5">
+      <div className="mt-6 flex gap-3">
         <button
-          className={`px-4 py-2 rounded-lg font-semibold transition-colors ${dirty ? 'bg-[#F97316] text-black hover:bg-[#fb8a3b]' : 'bg-[#374151] text-gray-400 cursor-not-allowed'}`}
+          className={`rounded-lg px-4 py-2 font-semibold shadow transition-all ${
+            dirty
+              ? 'bg-[#F97316] text-black hover:shadow-[0_6px_20px_rgba(249,115,22,0.35)] hover:bg-[#fb8a3b]'
+              : 'bg-[#374151] text-gray-400 cursor-not-allowed'
+          }`}
           disabled={!dirty || saving}
           onClick={handleSave}
         >
           {saving ? 'Saving...' : 'Save'}
         </button>
         <button
-          className="px-4 py-2 rounded-lg font-semibold border border-[#374151] text-white hover:bg-[#111827] transition-colors"
+          className="rounded-lg border border-[#374151] px-4 py-2 font-semibold text-white transition-colors hover:bg-[#111827]"
           onClick={handleCancel}
         >
           Cancel
@@ -131,18 +143,28 @@ export default function NotificationsSection({ onSave, onCancel, initialData }) 
 
 function Toggle({ id, label, checked, onChange }) {
   return (
-    <label htmlFor={id} className="flex items-center justify-between gap-4 bg-black border border-[#374151] rounded-lg px-4 py-3">
-      <span className="text-white">{label}</span>
+    <label
+      htmlFor={id}
+      className="flex items-center justify-between gap-4 rounded-lg border border-[#374151] bg-black px-4 py-3"
+    >
+      <div className="flex items-center gap-2">
+        <span aria-hidden>•</span>
+        <span className="text-white">{label}</span>
+      </div>
       <button
         id={id}
         type="button"
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
-        className={`w-12 h-6 rounded-full p-1 transition-colors ${checked ? 'bg-[#10B981]' : 'bg-[#374151]'}`}
+        className={`h-6 w-12 rounded-full p-1 transition-all ${
+          checked ? 'bg-[#10B981]' : 'bg-[#374151]'
+        }`}
       >
         <span
-          className={`block h-4 w-4 bg-white rounded-full transform transition-transform ${checked ? 'translate-x-6' : 'translate-x-0'}`}
+          className={`block h-4 w-4 rounded-full bg-white transition-transform ${
+            checked ? 'translate-x-6' : 'translate-x-0'
+          }`}
         />
       </button>
     </label>
