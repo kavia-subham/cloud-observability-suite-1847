@@ -112,12 +112,14 @@ export default function ProfileSection({ onSave, onCancel, initialData }) {
           }`}
           disabled={!dirty || saving}
           onClick={handleSave}
+          aria-label="Save profile settings"
         >
           {saving ? 'Saving...' : 'Save'}
         </button>
         <button
           className="rounded-lg border border-[#374151] px-4 py-2 font-semibold text-white transition-colors hover:bg-[#111827]"
           onClick={handleCancel}
+          aria-label="Cancel profile changes"
         >
           Cancel
         </button>

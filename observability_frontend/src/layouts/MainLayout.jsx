@@ -26,7 +26,7 @@ export default function MainLayout() {
     { to: '/settings', label: 'Settings', icon: '⚙️' },
   ];
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
 
   return (
     <div style={styles.shell}>

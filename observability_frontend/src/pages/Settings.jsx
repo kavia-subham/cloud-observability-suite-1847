@@ -4,12 +4,15 @@ import {
   ThemeToggleSection,
   NotificationsSection,
 } from '../components';
+// Ensure Ocean Professional theme is available on this route as a safety net
+import '../styles/theme.css';
 
 /**
- * Settings page container that composes profile, theme, and notifications sections with
- * a polished Ocean Professional UI. Uses mock data with clear pathways to wire up real APIs.
- *
  * PUBLIC_INTERFACE
+ * Settings route entrypoint.
+ * Purpose: Render the Settings dashboard with Profile, Appearance, and Notifications sections.
+ * Params: none (future: support nested subroutes via /settings/:tab)
+ * Returns: React element for the Settings screen with Ocean Professional theme styling.
  */
 export default function Settings() {
   // Mock initial data (easy to wire into APIs via onSave handlers)

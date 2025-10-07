@@ -111,12 +111,14 @@ export default function ThemeToggleSection({ onSave, onCancel, initialTheme }) {
           }`}
           disabled={!dirty || saving}
           onClick={handleSave}
+          aria-label="Save appearance settings"
         >
           {saving ? 'Saving...' : 'Save'}
         </button>
         <button
           className="rounded-lg border border-[#374151] px-4 py-2 font-semibold text-white transition-colors hover:bg-[#111827]"
           onClick={handleCancel}
+          aria-label="Cancel appearance changes"
         >
           Cancel
         </button>

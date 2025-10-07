@@ -127,12 +127,14 @@ export default function NotificationsSection({ onSave, onCancel, initialData }) 
           }`}
           disabled={!dirty || saving}
           onClick={handleSave}
+          aria-label="Save notification preferences"
         >
           {saving ? 'Saving...' : 'Save'}
         </button>
         <button
           className="rounded-lg border border-[#374151] px-4 py-2 font-semibold text-white transition-colors hover:bg-[#111827]"
           onClick={handleCancel}
+          aria-label="Cancel notification changes"
         >
           Cancel
         </button>
@@ -156,8 +158,9 @@ function Toggle({ id, label, checked, onChange }) {
         type="button"
         role="switch"
         aria-checked={checked}
+        aria-label={label}
         onClick={() => onChange(!checked)}
-        className={`h-6 w-12 rounded-full p-1 transition-all ${
+        className={`h-6 w-12 rounded-full p-1 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#10B981] focus-visible:ring-offset-black ${
           checked ? 'bg-[#10B981]' : 'bg-[#374151]'
         }`}
       >
