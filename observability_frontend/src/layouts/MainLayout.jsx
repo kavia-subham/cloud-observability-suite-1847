@@ -17,7 +17,7 @@ export default function MainLayout() {
   const navigate = useNavigate();
 
   const navItems = [
-    { to: '/dashboard', label: 'Dashboard', icon: '📊' },
+    { to: '/', label: 'Dashboard', icon: '📊' },
     { to: '/topology', label: 'Topology', icon: '🗺️' },
     { to: '/functions', label: 'Functions', icon: 'λ' },
     { to: '/alerts', label: 'Alerts', icon: '🚨' },

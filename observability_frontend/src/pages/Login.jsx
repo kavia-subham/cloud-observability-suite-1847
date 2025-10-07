@@ -1,5 +1,9 @@
 import React from 'react';
 
+/**
+ * Simple login page placeholder to pair with PublicRoute.
+ * Does not implement real authentication yet.
+ */
 // PUBLIC_INTERFACE
 export default function Login() {
   return (

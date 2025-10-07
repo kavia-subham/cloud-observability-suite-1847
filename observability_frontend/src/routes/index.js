@@ -1,6 +1,10 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+
+// Layout
 import MainLayout from '../layouts/MainLayout';
+
+// Pages
 import Dashboard from '../pages/Dashboard';
 import Topology from '../pages/Topology';
 import Functions from '../pages/Functions';
@@ -10,15 +14,60 @@ import Cost from '../pages/Cost';
 import Settings from '../pages/Settings';
 import Login from '../pages/Login';
 
+/**
+ * Temporary, stubbed auth hook returning always-authenticated.
+ * Replace with real Auth Context/Provider later.
+ */
+const useStubAuth = () => {
+  const isAuthenticated = true;
+  return { isAuthenticated };
+};
+
 // PUBLIC_INTERFACE
-export default function RoutesIndex() {
-  /** Configure all primary routes using React Router v6 */
+export const ProtectedRoute = ({ children }) => {
+  /** Guard for private routes using stubbed auth state */
+  const { isAuthenticated } = useStubAuth();
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
+
+// PUBLIC_INTERFACE
+export const PublicRoute = ({ children }) => {
+  /** Guard for public-only routes: redirects authenticated users to home */
+  const { isAuthenticated } = useStubAuth();
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  return children;
+};
+
+// PUBLIC_INTERFACE
+export default function AppRoutes() {
+  /** Configure app routes with protected layout and public login route */
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route element={<MainLayout />}>
-        <Route index element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+      {/* Public route(s) */}
+      <Route
+        path="/login"
+        element={
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        }
+      />
+
+      {/* Protected app shell with nested routes */}
+      <Route
+        element={
+          <ProtectedRoute>
+            <MainLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<Navigate to="/" replace />} />
+        <Route path="/" element={<Dashboard />} />
         <Route path="/topology" element={<Topology />} />
         <Route path="/functions" element={<Functions />} />
         <Route path="/alerts" element={<Alerts />} />
@@ -26,7 +75,9 @@ export default function RoutesIndex() {
         <Route path="/cost" element={<Cost />} />
         <Route path="/settings" element={<Settings />} />
       </Route>
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

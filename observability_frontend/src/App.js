@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import './App.css';
-import RoutesIndex from './routes';
+import AppRoutes from './routes';
 
 // PUBLIC_INTERFACE
 function App() {
@@ -30,7 +30,7 @@ function App() {
         {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
       </button>
       <BrowserRouter>
-        <RoutesIndex />
+        <AppRoutes />
       </BrowserRouter>
     </div>
   );
