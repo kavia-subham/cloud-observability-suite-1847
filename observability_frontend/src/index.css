@@ -1,10 +1,6 @@
 @import './styles/theme.css';
 
-/* Override/add just a couple of specifics for the app baseline */
-code {
-  font-family: var(--font-family-mono);
-  background: rgba(255,255,255,0.06);
-  padding: 0.1em 0.35em;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
+/* index.css baseline */
+html, body, #root {
+  height: 100%;
 }
