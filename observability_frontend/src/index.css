@@ -1,5 +1,13 @@
 @import './styles/theme.css';
 
+/* Base document styles using tokens */
+body {
+  margin: 0;
+  font-family: var(--font-family-sans);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
 /* Override/add just a couple of specifics for the app baseline */
 code {
   font-family: var(--font-family-mono);

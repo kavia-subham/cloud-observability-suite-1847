@@ -22,6 +22,15 @@ function App() {
 
   return (
     <div className="App">
+      <header className="app-header">
+        <div className="h3">Ocean Professional</div>
+        <div>
+          <button className="btn" onClick={toggleTheme}>
+            {theme === 'light' ? 'Switch Dark' : 'Switch Light'}
+          </button>
+        </div>
+      </header>
+
       <button
         className="theme-toggle"
         onClick={toggleTheme}
@@ -29,9 +38,12 @@ function App() {
       >
         {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
       </button>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
+
+      <main className="app-main">
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </main>
     </div>
   );
 }
