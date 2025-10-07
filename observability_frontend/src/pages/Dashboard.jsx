@@ -3,6 +3,7 @@ import MetricsOverviewGrid from '../components/MetricsOverviewGrid';
 import SLOStatus from '../components/SLOStatus';
 import RealtimeFeed from '../components/RealtimeFeed';
 import apiClient from '../services/apiClient';
+import { UICard as Card, CardHeader, CardContent } from '../components';
 import '../styles/theme.css';
 import '../App.css';
 
@@ -117,24 +118,39 @@ export default function Dashboard() {
             {/* KPI Grid */}
             <section aria-labelledby="metrics-overview-title" className="mb-6">
               <h2 id="metrics-overview-title" className="sr-only">Key Performance Indicators</h2>
-              <MetricsOverviewGrid
-                invocations={metrics?.invocations}
-                errors={metrics?.errors}
-                latencyP95={metrics?.latencyP95}
-                costToday={metrics?.costToday}
-              />
+              <Card>
+                <CardHeader title="Key Metrics" subtitle="Real-time health and cost indicators" />
+                <CardContent>
+                  <MetricsOverviewGrid
+                    invocations={metrics?.invocations}
+                    errors={metrics?.errors}
+                    latencyP95={metrics?.latencyP95}
+                    costToday={metrics?.costToday}
+                  />
+                </CardContent>
+              </Card>
             </section>
 
             {/* SLO Status */}
             <section aria-labelledby="slo-status-title" className="mb-6">
               <h2 id="slo-status-title" className="sr-only">SLO Status</h2>
-              <SLOStatus data={slo} />
+              <Card>
+                <CardHeader title="Service Level Objectives" subtitle="Current reliability posture" />
+                <CardContent>
+                  <SLOStatus data={slo} />
+                </CardContent>
+              </Card>
             </section>
 
             {/* Realtime Feed */}
             <section aria-labelledby="realtime-feed-title">
               <h2 id="realtime-feed-title" className="sr-only">Realtime Events</h2>
-              <RealtimeFeed />
+              <Card>
+                <CardHeader title="Realtime Feed" subtitle="Live events, anomalies, and alerts" />
+                <CardContent>
+                  <RealtimeFeed />
+                </CardContent>
+              </Card>
             </section>
           </>
         )}
