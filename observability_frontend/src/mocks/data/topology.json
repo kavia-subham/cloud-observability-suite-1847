@@ -1,17 +1,45 @@
 {
   "nodes": [
-    { "id": "api-gateway", "type": "gateway", "label": "API Gateway", "status": "healthy" },
-    { "id": "auth", "type": "function", "label": "Auth", "status": "healthy" },
-    { "id": "user-profile", "type": "function", "label": "User Profile", "status": "warning" },
-    { "id": "checkout", "type": "function", "label": "Checkout", "status": "critical" },
-    { "id": "payments", "type": "external", "label": "Payments API", "status": "degraded" },
-    { "id": "db", "type": "database", "label": "UsersDB", "status": "healthy" }
+    {
+      "id": "api-gateway",
+      "label": "API Gateway",
+      "type": "API",
+      "status": "healthy",
+      "metrics": { "requestsPerMin": 3400, "p95Latency": 110, "errorRate": 0.01, "coldStarts": 0 },
+      "anomalies": [],
+      "dependencies": { "upstream": [], "downstream": ["auth-fn", "orders-fn"] }
+    },
+    {
+      "id": "auth-fn",
+      "label": "Auth Function",
+      "type": "Lambda",
+      "status": "degraded",
+      "metrics": { "requestsPerMin": 1200, "p95Latency": 280, "errorRate": 0.06, "coldStarts": 3 },
+      "anomalies": [{ "title": "Elevated latency", "description": "P95 latency increased by 45% vs baseline", "severity": "high" }],
+      "dependencies": { "upstream": ["API Gateway"], "downstream": ["users-db"] }
+    },
+    {
+      "id": "orders-fn",
+      "label": "Orders Function",
+      "type": "Cloud Function",
+      "status": "healthy",
+      "metrics": { "requestsPerMin": 800, "p95Latency": 140, "errorRate": 0.02, "coldStarts": 1 },
+      "anomalies": [],
+      "dependencies": { "upstream": ["API Gateway"], "downstream": ["payments-fn", "orders-db"] }
+    },
+    {
+      "id": "payments-fn",
+      "label": "Payments Function",
+      "type": "Azure Function",
+      "status": "error",
+      "metrics": { "requestsPerMin": 300, "p95Latency": 520, "errorRate": 0.23, "coldStarts": 2 },
+      "anomalies": [{ "title": "Error spikes", "description": "Payment provider errors trending up", "severity": "critical" }],
+      "dependencies": { "upstream": ["Orders Function"], "downstream": ["payments-provider"] }
+    }
   ],
   "edges": [
-    { "source": "api-gateway", "target": "auth", "latency": 25, "rps": 350 },
-    { "source": "api-gateway", "target": "user-profile", "latency": 45, "rps": 500 },
-    { "source": "api-gateway", "target": "checkout", "latency": 55, "rps": 200 },
-    { "source": "checkout", "target": "payments", "latency": 180, "rps": 180 },
-    { "source": "user-profile", "target": "db", "latency": 15, "rps": 520 }
+    { "source": "api-gateway", "target": "auth-fn", "latency": 35, "errorRate": 0.01 },
+    { "source": "api-gateway", "target": "orders-fn", "latency": 42, "errorRate": 0.02 },
+    { "source": "orders-fn", "target": "payments-fn", "latency": 67, "errorRate": 0.08 }
   ]
 }

@@ -347,6 +347,24 @@ export const FunctionsAPI = {
   invocations: (id, params) => api.get(`/functions/${encodeURIComponent(id)}/invocations`, { params }),
 };
 
+/**
+ * PUBLIC_INTERFACE
+ * getTopology
+ * Fetch the service topology (nodes and edges). When mocks are enabled via env,
+ * fetches from the local mocks JSON.
+ */
+export async function getTopology(params) {
+  const { USE_MOCKS } = getEnv();
+  if (USE_MOCKS) {
+    const res = await fetch('/mocks/data/topology.json');
+    if (!res.ok) {
+      throw normalizeError({ message: 'Failed to fetch topology (mock)', status: res.status }, { url: '/mocks/data/topology.json', method: 'GET' });
+    }
+    return res.json();
+  }
+  return api.get('/topology', { params });
+}
+
 // Default export retains common helpers for convenience.
 const apiClient = {
   request,
@@ -356,6 +374,7 @@ const apiClient = {
   CostAPI,
   SecurityAPI,
   FunctionsAPI,
+  getTopology,
 };
 
 export default apiClient;

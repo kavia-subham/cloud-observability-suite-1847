@@ -11,7 +11,16 @@ export { default as CostBreakdown } from './cost/CostBreakdown';
 export { default as OptimizationList } from './cost/OptimizationList';
 export { default as WhatIfPanel } from './cost/WhatIfPanel';
 
-// Functions
+ // Functions
 export { default as FunctionList } from './functions/FunctionList';
 export { default as FunctionDetails } from './functions/FunctionDetails';
 export { default as InvocationsTable } from './functions/InvocationsTable';
+
+// Topology
+export { default as ServiceGraph } from './topology/ServiceGraph';
+export { default as NodeDetailsPanel } from './topology/NodeDetailsPanel';
+
+// Settings
+export { default as ProfileSection } from './settings/ProfileSection';
+export { default as ThemeToggleSection } from './settings/ThemeToggleSection';
+export { default as NotificationsSection } from './settings/NotificationsSection';

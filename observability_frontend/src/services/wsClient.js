@@ -381,3 +381,16 @@
    /** Get the underlying client instance for advanced usage or status inspection. */
    return client;
  }
+
+ // Provide a default export object aggregator for convenience imports.
+ const wsClient = {
+   connect,
+   disconnect,
+   subscribe,
+   unsubscribe,
+   on,
+   off,
+   getClient,
+ };
+
+ export default wsClient;
