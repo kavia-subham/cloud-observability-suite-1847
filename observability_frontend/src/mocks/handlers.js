@@ -27,9 +27,28 @@ export function createMockHandlers() {
 
     { method: 'GET', path: '/api/topology', status: 200, json: topology },
 
-    { method: 'GET', path: '/api/costs/summary', status: 200, json: costs.summary },
-    { method: 'GET', path: '/api/costs/services', status: 200, json: costs.services },
-    { method: 'GET', path: '/api/costs/optimizations', status: 200, json: costs.optimizations },
+    // Costs list and recommendations to support Cost page
+    { method: 'GET', path: '/api/costs', status: 200, json: costs },
+    { method: 'GET', path: '/api/costs/recommendations', status: 200, json: [
+      {
+        id: "rec-1",
+        title: "Reduce memory for low-CPU Lambda",
+        description: "Decrease memory by 128MB for underutilized functions to reduce cost.",
+        impactUsd: 120.5,
+        impactPct: 8.2,
+        type: "memory",
+        suggestedDeltaMb: -128
+      },
+      {
+        id: "rec-2",
+        title: "Increase concurrency for hot path",
+        description: "Raise concurrency to 1.5x to reduce average duration and cost.",
+        impactUsd: 210.75,
+        impactPct: 12.3,
+        type: "concurrency",
+        suggestedMultiplier: 1.5
+      }
+    ] },
 
     { method: 'GET', path: '/api/functions', status: 200, json: functionsData },
 

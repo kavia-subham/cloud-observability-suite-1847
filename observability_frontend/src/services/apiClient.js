@@ -441,5 +441,51 @@ const apiClient = {
   },
 };
 
+/**
+ * PUBLIC_INTERFACE
+ * getCosts: fetch cost dataset (mock-aware).
+ */
+export async function getCosts(params) {
+  const { USE_MOCKS } = getEnv();
+  if (USE_MOCKS) {
+    const mod = await import("../mocks/data/costs.json");
+    return mod.default || [];
+  }
+  return api.get("/costs", { params });
+}
+
+/**
+ * PUBLIC_INTERFACE
+ * getCostRecommendations: fetch cost optimization recommendations (mock-aware).
+ * In mock mode, synthesize a small set from local data for demo.
+ */
+export async function getCostRecommendations() {
+  const { USE_MOCKS } = getEnv();
+  if (USE_MOCKS) {
+    // synthesize a small static list to avoid extra files
+    return [
+      {
+        id: "rec-1",
+        title: "Reduce memory for low-CPU Lambda",
+        description: "Decrease memory by 128MB for underutilized functions to reduce cost.",
+        impactUsd: 120.5,
+        impactPct: 8.2,
+        type: "memory",
+        suggestedDeltaMb: -128
+      },
+      {
+        id: "rec-2",
+        title: "Increase concurrency for hot path",
+        description: "Raise concurrency to 1.5x to reduce average duration and cost.",
+        impactUsd: 210.75,
+        impactPct: 12.3,
+        type: "concurrency",
+        suggestedMultiplier: 1.5
+      }
+    ];
+  }
+  return api.get("/costs/recommendations");
+}
+
 export { apiClient };
 export default apiClient;
