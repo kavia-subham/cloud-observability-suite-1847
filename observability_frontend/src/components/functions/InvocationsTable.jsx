@@ -1,103 +1,96 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { apiClient } from '../../services/apiClient';
 
 /**
+ * PUBLIC_INTERFACE
  * InvocationsTable
- * Recent executions table with status, duration, cold start flag, and memory used.
- * Mock data by default; provide onRowClick for future deep links.
+ * Shows recent invocations for the selected function with basic metadata.
  */
-// PUBLIC_INTERFACE
-export default function InvocationsTable({
-  rows = defaultRows,
-  onRowClick = () => {},
-  style: styleProp = {},
-  title = 'Recent Invocations',
-}) {
-  return (
-    <div className="surface" style={{ ...styles.card, ...styleProp }}>
-      <div style={styles.header}>
-        <h3 className="h3" style={{ margin: 0 }}>{title}</h3>
-        <span style={styles.pill}>Mock</span>
-      </div>
+export default function InvocationsTable({ selectedFunction }) {
+  const [loading, setLoading] = useState(false);
+  const [rows, setRows] = useState([]);
+  const [err, setErr] = useState(null);
 
-      <div role="table" aria-label="Invocations table" style={styles.table}>
-        <div role="row" style={{ ...styles.tr, ...styles.th }}>
-          <div role="columnheader" style={styles.td}>Time</div>
-          <div role="columnheader" style={styles.td}>Request ID</div>
-          <div role="columnheader" style={styles.td}>Status</div>
-          <div role="columnheader" style={styles.td}>Duration</div>
-          <div role="columnheader" style={styles.td}>Cold Start</div>
-          <div role="columnheader" style={styles.td}>Memory Used</div>
-        </div>
-        {rows.map((r) => (
-          <button
-            key={r.id}
-            role="row"
-            className="btn-outline"
-            onClick={() => onRowClick(r)}
-            style={styles.trBtn}
-            title={`Open invocation ${r.id}`}
-          >
-            <div role="cell" style={styles.td}>{r.time}</div>
-            <div role="cell" style={{ ...styles.td, fontFamily: 'var(--font-family-mono)' }}>{r.id}</div>
-            <div role="cell" style={styles.td}>
-              <span style={{ ...styles.statusDot, background: statusColor[r.status] }} />
-              {r.status.toUpperCase()}
+  useEffect(() => {
+    let mounted = true;
+    if (!selectedFunction) {
+      setRows([]);
+      setErr(null);
+      setLoading(false);
+      return () => {};
+    }
+    setLoading(true);
+    setErr(null);
+
+    apiClient
+      .getFunctionInvocations(selectedFunction)
+      .then((data) => {
+        if (!mounted) return;
+        setRows(Array.isArray(data) ? data : data?.items || []);
+      })
+      .catch((e) => {
+        console.error('Failed to load invocations', e);
+        if (!mounted) return;
+        setErr('Failed to load invocations');
+      })
+      .finally(() => mounted && setLoading(false));
+
+    return () => {
+      mounted = false;
+    };
+  }, [selectedFunction]);
+
+  return (
+    <div role="table" aria-label="Invocations table" className="w-full overflow-x-auto">
+      {!selectedFunction && (
+        <div className="text-gray-400 py-6">Select a function to see its recent invocations.</div>
+      )}
+      {selectedFunction && (
+        <>
+          <div className="text-sm text-gray-300 mb-2">
+            Showing last {rows.length} invocations for <span className="text-white font-semibold">{selectedFunction.name}</span>
+          </div>
+          <div role="rowgroup" className="min-w-[760px]">
+            <div role="row" className="grid grid-cols-6 gap-3 px-2 py-2 text-sm text-gray-300">
+              <div role="columnheader">Time</div>
+              <div role="columnheader">Duration (ms)</div>
+              <div role="columnheader">Memory (MB)</div>
+              <div role="columnheader">Cold Start</div>
+              <div role="columnheader">Status</div>
+              <div role="columnheader">Request ID</div>
             </div>
-            <div role="cell" style={styles.td}>{r.duration} ms</div>
-            <div role="cell" style={styles.td}>{r.cold ? 'Yes' : 'No'}</div>
-            <div role="cell" style={styles.td}>{r.memory} MB</div>
-          </button>
-        ))}
-      </div>
+            <div role="rowgroup" className="divide-y divide-gray-700">
+              {loading && <div className="px-2 py-6 text-gray-400">Loading…</div>}
+              {err && !loading && <div className="px-2 py-6 text-red-400">{err}</div>}
+              {!loading && !err && rows.length === 0 && (
+                <div className="px-2 py-6 text-gray-400">No recent invocations.</div>
+              )}
+              {!loading && !err && rows.map((r) => (
+                <div role="row" key={r.requestId} className="grid grid-cols-6 gap-3 px-2 py-2">
+                  <div className="text-gray-200">{r.time}</div>
+                  <div className="text-gray-200">{r.durationMs}</div>
+                  <div className="text-gray-200">{r.memoryMb}</div>
+                  <div className="text-gray-200">
+                    <span className={`px-2 py-0.5 rounded-lg text-xs ${
+                      r.coldStart ? 'bg-orange-500/20 text-orange-300' : 'bg-gray-600/40 text-gray-200'
+                    }`}>
+                      {r.coldStart ? 'Yes' : 'No'}
+                    </span>
+                  </div>
+                  <div className="text-gray-200">
+                    <span className={`px-2 py-0.5 rounded-lg text-xs ${
+                      r.status === 'error' ? 'bg-red-500/20 text-red-300' : 'bg-green-500/20 text-green-300'
+                    }`}>
+                      {r.status}
+                    </span>
+                  </div>
+                  <div className="text-gray-200 truncate" title={r.requestId}>{r.requestId}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
-
-const styles = {
-  card: { padding: 'var(--space-6)', display: 'grid', gap: 'var(--space-4)' },
-  header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
-  pill: {
-    background: 'var(--gradient-accent)',
-    border: '1px solid var(--color-border)',
-    borderRadius: 'var(--radius-full)',
-    padding: '4px 10px',
-    fontSize: 'var(--text-sm)',
-  },
-  table: { display: 'grid', gap: 6 },
-  tr: {
-    display: 'grid',
-    gridTemplateColumns: '1.1fr 1.6fr 1fr 1fr 0.8fr 1fr',
-    alignItems: 'center',
-    gap: 8,
-  },
-  th: { color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' },
-  td: { textAlign: 'left' },
-  trBtn: {
-    display: 'grid',
-    gridTemplateColumns: '1.1fr 1.6fr 1fr 1fr 0.8fr 1fr',
-    alignItems: 'center',
-    gap: 8,
-    padding: '10px 12px',
-    color: 'var(--color-text)',
-    background: 'var(--color-surface)',
-    border: '1px solid var(--color-border)',
-    borderRadius: 'var(--radius-md)',
-    textAlign: 'left',
-    cursor: 'pointer',
-  },
-  statusDot: { width: 8, height: 8, borderRadius: '50%', display: 'inline-block', marginRight: 6 },
-};
-
-const statusColor = {
-  ok: '#10B981',
-  error: '#EF4444',
-  throttled: '#F59E0B',
-};
-
-const defaultRows = [
-  { id: 'req_12af8c', time: '12:03:22', status: 'ok', duration: 142, cold: true, memory: 118 },
-  { id: 'req_12af8d', time: '12:03:28', status: 'ok', duration: 131, cold: false, memory: 122 },
-  { id: 'req_12af8e', time: '12:03:31', status: 'error', duration: 3001, cold: false, memory: 120 },
-  { id: 'req_12af8f', time: '12:03:41', status: 'ok', duration: 155, cold: false, memory: 116 },
-  { id: 'req_12af90', time: '12:03:52', status: 'throttled', duration: 12, cold: false, memory: 20 },
-];

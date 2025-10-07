@@ -1,239 +1,161 @@
-import React, { useMemo, useState } from 'react';
+import React from 'react';
 
 /**
+ * PUBLIC_INTERFACE
  * FunctionList
- * Lists, filters, and searches serverless functions across providers/regions.
- * Uses mock data by default and exposes onSelect for integration.
- *
- * Accessibility: Role grid; rows are buttons with aria-selected for state.
+ * Renders a list/table of serverless functions with client-side search, sort, and pagination.
+ * Shows key indicators: error rate, latency p95, cold starts, and invocations trend badge.
  */
-// PUBLIC_INTERFACE
 export default function FunctionList({
-  items = defaultFunctions,
-  onSelect = () => {},
-  selectedId = null,
-  style: styleProp = {},
-  title = 'Functions',
+  items,
+  loading,
+  error,
+  search,
+  onSearch,
+  sortBy,
+  sortDir,
+  onChangeSort,
+  page,
+  pageSize,
+  totalPages,
+  fullCount,
+  onPageChange,
+  onSelect,
 }) {
-  const [q, setQ] = useState('');
-  const [provider, setProvider] = useState('all');
-  const [region, setRegion] = useState('all');
-  const [sort, setSort] = useState('recent'); // recent | errors | latency
+  const headers = [
+    { key: 'name', label: 'Function', width: '28%' },
+    { key: 'provider', label: 'Cloud', width: '10%' },
+    { key: 'region', label: 'Region', width: '10%' },
+    { key: 'runtime', label: 'Runtime', width: '10%' },
+    { key: 'p95LatencyMs', label: 'p95 (ms)', width: '10%' },
+    { key: 'errorRate', label: 'Error %', width: '10%' },
+    { key: 'coldStarts', label: 'Cold Starts', width: '12%' },
+    { key: 'invocations', label: 'Invocations', width: '10%' },
+  ];
 
-  const providers = useMemo(() => ['all', ...Array.from(new Set(items.map(i => i.provider)))], [items]);
-  const regions = useMemo(() => ['all', ...Array.from(new Set(items.map(i => i.region)))], [items]);
-
-  const filtered = useMemo(() => {
-    let out = items;
-    if (q.trim()) {
-      const t = q.trim().toLowerCase();
-      out = out.filter(i =>
-        i.name.toLowerCase().includes(t) ||
-        i.provider.toLowerCase().includes(t) ||
-        i.region.toLowerCase().includes(t) ||
-        i.runtime.toLowerCase().includes(t)
-      );
-    }
-    if (provider !== 'all') out = out.filter(i => i.provider === provider);
-    if (region !== 'all') out = out.filter(i => i.region === region);
-
-    switch (sort) {
-      case 'errors':
-        out = [...out].sort((a, b) => b.errorRate - a.errorRate);
-        break;
-      case 'latency':
-        out = [...out].sort((a, b) => b.p95 - a.p95);
-        break;
-      case 'recent':
-      default:
-        out = [...out].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-        break;
-    }
-    return out;
-  }, [items, q, provider, region, sort]);
+  const renderSortIcon = (key) => {
+    if (sortBy !== key) return <span aria-hidden="true" className="text-gray-500">↕</span>;
+    return sortDir === 'asc' ? (
+      <span aria-hidden="true" className="text-orange-400">↑</span>
+    ) : (
+      <span aria-hidden="true" className="text-orange-400">↓</span>
+    );
+  };
 
   return (
-    <div className="surface" style={{ ...styles.card, ...styleProp }}>
-      <div style={styles.header}>
-        <h3 className="h3" style={{ margin: 0 }}>{title}</h3>
-        <span style={styles.pill}>Mock</span>
-      </div>
-
-      <div style={styles.toolbar}>
-        <div style={styles.searchWrap} className="app-surface-ring">
-          <span role="img" aria-label="search" style={{ marginRight: 8 }}>🔎</span>
+    <div>
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between mb-3">
+        <div className="relative w-full sm:w-80">
           <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search name, runtime, provider..."
             aria-label="Search functions"
-            style={styles.input}
+            type="search"
+            value={search}
+            onChange={(e) => onSearch(e.target.value)}
+            placeholder="Search by name, cloud, region, runtime..."
+            className="w-full rounded-lg bg-gray-900 border border-gray-700 px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
           />
+          <div className="absolute right-3 top-2.5 text-gray-400" aria-hidden="true">⌕</div>
         </div>
-
-        <div style={styles.filters}>
-          <select aria-label="Filter by provider" value={provider} onChange={(e) => setProvider(e.target.value)} style={styles.select}>
-            {providers.map(p => <option key={p} value={p}>{p.toUpperCase()}</option>)}
-          </select>
-          <select aria-label="Filter by region" value={region} onChange={(e) => setRegion(e.target.value)} style={styles.select}>
-            {regions.map(r => <option key={r} value={r}>{r}</option>)}
-          </select>
-          <select aria-label="Sort" value={sort} onChange={(e) => setSort(e.target.value)} style={styles.select}>
-            <option value="recent">Recent</option>
-            <option value="errors">Errors</option>
-            <option value="latency">Latency</option>
-          </select>
+        <div className="text-sm text-gray-300">
+          Showing {items?.length || 0} of {fullCount || 0}
         </div>
       </div>
 
-      <div role="grid" aria-label="Functions list" style={styles.list}>
-        {filtered.map(fn => {
-          const active = selectedId === fn.id;
-          return (
-            <button
-              key={fn.id}
-              role="row"
-              aria-selected={active}
-              className="btn-outline"
-              onClick={() => onSelect(fn)}
-              style={{
-                ...styles.row,
-                ...(active ? styles.rowActive : {}),
-                borderColor: active ? 'var(--color-secondary)' : 'var(--color-border)',
-              }}
-              title={`Open ${fn.name}`}
-            >
-              <span style={{ ...styles.providerGlyph, background: providerBg(fn.provider) }}>
-                {providerGlyph(fn.provider)}
-              </span>
-              <div style={styles.rowBody}>
-                <div style={styles.rowTitle}>
-                  <strong>{fn.name}</strong>
-                  <span style={{ color: 'var(--color-text-muted)' }}> • {fn.runtime} • {fn.memory}MB</span>
-                </div>
-                <div style={styles.rowMeta}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>{fn.provider}</span>
-                  <span style={{ color: 'var(--color-text-muted)' }}>{fn.region}</span>
-                  <span style={{ color: 'var(--color-text-muted)' }}>{fn.updatedAtLabel}</span>
-                </div>
-              </div>
-              <div style={styles.metrics}>
-                <span style={styles.badge}>p95 {fn.p95} ms</span>
-                <span style={{ ...styles.badge, background: fn.errorRate > 1 ? 'rgba(239,68,68,0.2)' : 'rgba(16,185,129,0.2)' }}>
-                  {fn.errorRate.toFixed(2)}% err
+      <div role="table" aria-label="Functions table" className="w-full overflow-x-auto">
+        <div role="rowgroup" className="min-w-[880px]">
+          <div role="row" className="grid grid-cols-8 gap-3 px-2 py-2 text-sm text-gray-300">
+            {headers.map((h) => (
+              <button
+                key={h.key}
+                role="columnheader"
+                aria-sort={sortBy === h.key ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
+                onClick={() => onChangeSort(h.key)}
+                className="text-left hover:text-white focus:outline-none"
+                style={{ width: h.width }}
+                title={`Sort by ${h.label}`}
+              >
+                <span className="inline-flex items-center gap-1">
+                  {h.label} {renderSortIcon(h.key)}
                 </span>
-                <span style={styles.badge}>{fn.invocations.toLocaleString()} calls</span>
-              </div>
-            </button>
-          );
-        })}
-        {filtered.length === 0 && (
-          <div className="text-muted" style={{ padding: 'var(--space-6)', textAlign: 'center' }}>
-            No functions match your filters.
+              </button>
+            ))}
           </div>
-        )}
+
+          <div role="rowgroup" className="divide-y divide-gray-700">
+            {loading && (
+              <div role="row" className="px-2 py-6 text-gray-400">Loading functions…</div>
+            )}
+            {error && !loading && (
+              <div role="row" className="px-2 py-6 text-red-400">{error}</div>
+            )}
+            {!loading && !error && items && items.length === 0 && (
+              <div role="row" className="px-2 py-6 text-gray-400">No functions match your criteria.</div>
+            )}
+            {!loading && !error && items && items.map((f) => (
+              <button
+                key={`${f.provider}-${f.region}-${f.name}`}
+                role="row"
+                onClick={() => onSelect && onSelect(f)}
+                className="grid grid-cols-8 gap-3 px-2 py-3 hover:bg-gray-700/40 focus:bg-gray-700/60 rounded-lg w-full text-left"
+              >
+                <div className="truncate" style={{ width: headers[0].width }}>
+                  <div className="font-semibold text-white">{f.name}</div>
+                  <div className="text-xs text-gray-400">
+                    {f.service || 'Function'} • {f.memoryMb ? `${f.memoryMb}MB` : '—'}
+                  </div>
+                </div>
+                <div className="text-gray-200" style={{ width: headers[1].width }}>{f.provider}</div>
+                <div className="text-gray-200" style={{ width: headers[2].width }}>{f.region}</div>
+                <div className="text-gray-200" style={{ width: headers[3].width }}>{f.runtime}</div>
+                <div className="text-gray-200" style={{ width: headers[4].width }}>{f.p95LatencyMs ?? '—'}</div>
+                <div className="text-gray-200" style={{ width: headers[5].width }}>
+                  <span className={`px-2 py-0.5 rounded-lg text-xs ${
+                    (f.errorRate ?? 0) > 2 ? 'bg-red-500/20 text-red-300' : 'bg-green-500/20 text-green-300'
+                  }`}>
+                    {(f.errorRate ?? 0).toFixed(2)}%
+                  </span>
+                </div>
+                <div className="text-gray-200" style={{ width: headers[6].width }}>
+                  <span className={`px-2 py-0.5 rounded-lg text-xs ${
+                    (f.coldStarts ?? 0) > 0 ? 'bg-orange-500/20 text-orange-300' : 'bg-gray-600/40 text-gray-200'
+                  }`}>
+                    {f.coldStarts ?? 0}
+                  </span>
+                </div>
+                <div className="text-gray-200" style={{ width: headers[7].width }}>
+                  <span className="px-2 py-0.5 rounded-lg text-xs bg-blue-500/20 text-blue-300">
+                    {f.invocations ?? 0}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-center justify-between">
+        <div className="text-sm text-gray-400">
+          Page {page} of {totalPages} • {pageSize} per page
+        </div>
+        <div className="flex gap-2">
+          <button
+            className="px-3 py-1.5 rounded-lg bg-gray-900 border border-gray-700 text-gray-200 hover:bg-gray-700/50 focus:ring-2 focus:ring-orange-500"
+            onClick={() => onPageChange(page - 1)}
+            disabled={page <= 1}
+            aria-label="Previous page"
+          >
+            Prev
+          </button>
+          <button
+            className="px-3 py-1.5 rounded-lg bg-gray-900 border border-gray-700 text-gray-200 hover:bg-gray-700/50 focus:ring-2 focus:ring-orange-500"
+            onClick={() => onPageChange(page + 1)}
+            disabled={page >= totalPages}
+            aria-label="Next page"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );
 }
-
-const styles = {
-  card: { padding: 'var(--space-6)', display: 'grid', gap: 'var(--space-4)' },
-  header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
-  pill: {
-    background: 'var(--gradient-accent)',
-    border: '1px solid var(--color-border)',
-    borderRadius: 'var(--radius-full)',
-    padding: '4px 10px',
-    fontSize: 'var(--text-sm)',
-  },
-  toolbar: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: 'var(--space-3)',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  searchWrap: {
-    display: 'flex', alignItems: 'center', gap: 6,
-    padding: '8px 12px',
-    background: 'var(--color-surface)',
-    borderRadius: 'var(--radius-lg)',
-    border: '1px solid var(--color-border)',
-    minWidth: 240,
-  },
-  input: {
-    appearance: 'none', border: 'none', outline: 'none',
-    background: 'transparent', color: 'var(--color-text)',
-    width: 280,
-  },
-  filters: { display: 'flex', gap: 'var(--space-3)' },
-  select: {
-    appearance: 'none',
-    background: 'var(--color-surface)',
-    color: 'var(--color-text)',
-    border: '1px solid var(--color-border)',
-    borderRadius: 'var(--radius-md)',
-    padding: '8px 10px',
-  },
-  list: { display: 'grid', gap: 'var(--space-3)' },
-  row: {
-    width: '100%',
-    display: 'grid',
-    gridTemplateColumns: 'auto 1fr auto',
-    gap: 'var(--space-3)',
-    alignItems: 'center',
-    padding: '10px 12px',
-    background: 'var(--color-surface)',
-    color: 'var(--color-text)',
-    borderRadius: 'var(--radius-md)',
-    border: '1px solid var(--color-border)',
-    textAlign: 'left',
-    cursor: 'pointer',
-  },
-  rowActive: {
-    boxShadow: '0 0 0 2px var(--color-secondary) inset',
-    background: 'linear-gradient(135deg, rgba(16,185,129,0.15), rgba(0,0,0,1))',
-  },
-  providerGlyph: {
-    width: 26, height: 26, borderRadius: 'var(--radius-full)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    color: '#000', fontWeight: 'var(--weight-bold)',
-    boxShadow: 'var(--elevation-1)',
-  },
-  rowBody: { display: 'flex', flexDirection: 'column', gap: 4 },
-  rowTitle: {},
-  rowMeta: { display: 'flex', gap: 'var(--space-4)', fontSize: 'var(--text-sm)' },
-  metrics: { display: 'flex', gap: 8, alignItems: 'center' },
-  badge: {
-    border: '1px solid var(--color-border)',
-    borderRadius: 'var(--radius-full)',
-    padding: '2px 8px',
-    fontSize: 'var(--text-xs)',
-    background: 'rgba(255,255,255,0.06)',
-  },
-};
-
-function providerGlyph(p) {
-  const s = String(p || '').toLowerCase();
-  if (s.startsWith('aws')) return 'A';
-  if (s.startsWith('gcp') || s.startsWith('google')) return 'G';
-  if (s.startsWith('azure')) return 'Z';
-  return s[0]?.toUpperCase() || 'S';
-}
-function providerBg(p) {
-  const s = String(p || '').toLowerCase();
-  if (s.startsWith('aws')) return '#F97316';
-  if (s.startsWith('gcp') || s.startsWith('google')) return '#10B981';
-  if (s.startsWith('azure')) return '#60A5FA';
-  return '#F59E0B';
-}
-
-const now = Date.now();
-const defaultFunctions = [
-  { id: 'fn-1', name: 'auth-validate', provider: 'AWS', region: 'us-east-1', runtime: 'nodejs18.x', memory: 256, p95: 142, errorRate: 0.32, invocations: 512340, updatedAt: now - 1000 * 60 * 2, updatedAtLabel: '2m ago' },
-  { id: 'fn-2', name: 'payment-authorize', provider: 'GCP', region: 'us-central1', runtime: 'python3.11', memory: 512, p95: 188, errorRate: 1.24, invocations: 2210340, updatedAt: now - 1000 * 60 * 6, updatedAtLabel: '6m ago' },
-  { id: 'fn-3', name: 'orders-write', provider: 'Azure', region: 'westeurope', runtime: 'nodejs18.x', memory: 1024, p95: 210, errorRate: 0.82, invocations: 703212, updatedAt: now - 1000 * 60 * 9, updatedAtLabel: '9m ago' },
-  { id: 'fn-4', name: 'report-daily', provider: 'GCP', region: 'us-west1', runtime: 'go1.22', memory: 256, p95: 98, errorRate: 0.12, invocations: 53210, updatedAt: now - 1000 * 60 * 12, updatedAtLabel: '12m ago' },
-  { id: 'fn-5', name: 'webhook-dispatch', provider: 'AWS', region: 'eu-west-1', runtime: 'python3.10', memory: 128, p95: 240, errorRate: 1.92, invocations: 112031, updatedAt: now - 1000 * 60 * 15, updatedAtLabel: '15m ago' },
-];

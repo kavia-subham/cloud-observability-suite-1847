@@ -1,93 +1,160 @@
-import React, { useMemo, useState } from 'react';
-import { FunctionList, FunctionDetails, InvocationsTable } from '../components';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useAppContext } from '../state/AppContext';
+import { apiClient } from '../services/apiClient';
+import { FunctionList, InvocationsTable, FunctionDetails } from '../components';
+import '../App.css';
+import '../styles/theme.css';
+import '../styles/tokens.css';
 
-// PUBLIC_INTERFACE
-export default function Functions() {
-  // Mock data source for the entire page (ready for future API hook)
-  const functions = useMemo(() => seedFunctions(), []);
-  const [selected, setSelected] = useState(functions[0]);
-  const [invocations, setInvocations] = useState(seedInvocations());
+/**
+ * PUBLIC_INTERFACE
+ * Functions
+ * A page providing an overview of serverless functions with search, sort, pagination, and details panel.
+ * - Fetches functions list via apiClient with mock support.
+ * - Displays trends, errors, cold starts indicators.
+ * - Provides a details panel with recent mock logs and AI-style recommendations.
+ */
+const Functions = () => {
+  const { state } = useAppContext();
+  const [loading, setLoading] = useState(true);
+  const [functions, setFunctions] = useState([]);
+  const [error, setError] = useState(null);
+  const [selectedFn, setSelectedFn] = useState(null);
 
-  const handleSelect = (fn) => {
-    setSelected(fn);
-    // On select, refresh invocations with a new set (mock)
-    setInvocations(seedInvocations());
+  // Client-side UI state
+  const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState('errorRate'); // default critical metric
+  const [sortDir, setSortDir] = useState('desc');
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+
+  useEffect(() => {
+    let mounted = true;
+    setLoading(true);
+    setError(null);
+    apiClient
+      .getFunctions()
+      .then((data) => {
+        if (!mounted) return;
+        setFunctions(Array.isArray(data) ? data : data?.items || []);
+      })
+      .catch((e) => {
+        console.error('Failed to load functions', e);
+        if (!mounted) return;
+        setError('Failed to load functions');
+      })
+      .finally(() => mounted && setLoading(false));
+    return () => {
+      mounted = false;
+    };
+  }, [state?.auth?.token]);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return functions.filter((f) => {
+      if (!q) return true;
+      return (
+        f.name?.toLowerCase().includes(q) ||
+        f.provider?.toLowerCase().includes(q) ||
+        f.region?.toLowerCase().includes(q) ||
+        f.runtime?.toLowerCase().includes(q)
+      );
+    });
+  }, [functions, search]);
+
+  const sorted = useMemo(() => {
+    const items = [...filtered];
+    items.sort((a, b) => {
+      const dir = sortDir === 'asc' ? 1 : -1;
+      const av = a?.[sortBy];
+      const bv = b?.[sortBy];
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      if (typeof av === 'number' && typeof bv === 'number') {
+        return av === bv ? 0 : av > bv ? dir : -dir;
+      }
+      const as = String(av).toLowerCase();
+      const bs = String(bv).toLowerCase();
+      return as === bs ? 0 : as > bs ? dir : -dir;
+    });
+    return items;
+  }, [filtered, sortBy, sortDir]);
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const paged = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return sorted.slice(start, start + pageSize);
+  }, [sorted, currentPage]);
+
+  const onSelectFunction = (fn) => setSelectedFn(fn);
+
+  const onChangeSort = (field) => {
+    if (sortBy === field) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortBy(field);
+      setSortDir('desc');
+    }
   };
 
-  const handleInvoke = (fn) => {
-    // Placeholder for future API call to trigger test invocation; update mock table
-    const newRow = {
-      id: `req_${Math.random().toString(16).slice(2, 8)}`,
-      time: 'now',
-      status: Math.random() < 0.85 ? 'ok' : 'error',
-      duration: 100 + Math.floor(Math.random() * 3000),
-      cold: Math.random() < 0.2,
-      memory: 100 + Math.floor(Math.random() * 50),
-    };
-    setInvocations((prev) => [newRow, ...prev].slice(0, 12));
-    // eslint-disable-next-line no-console
-    console.log('Test invoke (mock):', fn.name);
+  const onPageChange = (newPage) => {
+    setPage(Math.min(Math.max(1, newPage), totalPages));
   };
 
   return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
-        <div>
-          <h1 className="h2" style={{ marginTop: 0 }}>Functions</h1>
-          <p className="text-muted">Browse and inspect serverless functions across providers. Bold Ocean Professional visuals.</p>
-        </div>
-        <div>
-          <button className="btn btn-outline" style={{ marginRight: 'var(--space-2)' }}>Import</button>
-          <button className="btn">Discover</button>
-        </div>
-      </div>
+    <main
+      className="min-h-screen bg-black text-white"
+      aria-labelledby="functions-page-title"
+      style={{ padding: '16px' }}
+    >
+      <header className="mb-4">
+        <h1
+          id="functions-page-title"
+          className="text-2xl font-bold text-white"
+          aria-label="Functions overview"
+        >
+          Functions
+        </h1>
+        <p className="text-gray-300">
+          Monitor performance, reliability, and cost signals for your serverless functions across clouds.
+        </p>
+      </header>
 
-      <section style={layout.wrap}>
-        <div style={layout.colList}>
-          <FunctionList items={functions} selectedId={selected?.id} onSelect={handleSelect} />
-        </div>
-        <div style={layout.colDetails}>
-          <FunctionDetails fn={selected} onInvoke={handleInvoke} />
-          <InvocationsTable rows={invocations} style={{ marginTop: 'var(--space-5)' }} />
-        </div>
+      <section className="bg-gray-800 rounded-xl p-4 shadow-lg shadow-orange-500/10 border border-gray-700">
+        <FunctionList
+          items={paged}
+          fullCount={sorted.length}
+          page={currentPage}
+          pageSize={pageSize}
+          totalPages={totalPages}
+          loading={loading}
+          error={error}
+          search={search}
+          onSearch={setSearch}
+          sortBy={sortBy}
+          sortDir={sortDir}
+          onChangeSort={onChangeSort}
+          onPageChange={onPageChange}
+          onSelect={onSelectFunction}
+        />
       </section>
 
-      <p className="text-muted" style={{ marginTop: 'var(--space-4)' }}>
-        Note: This page uses mock data. Placeholders are ready for REST API and WebSocket integration for logs and live invocations.
-      </p>
-    </div>
+      <section className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 bg-gray-800 rounded-xl p-4 border border-gray-700">
+          <h2 className="text-xl font-semibold mb-2">Recent Invocations</h2>
+          <InvocationsTable selectedFunction={selectedFn} />
+        </div>
+        <aside
+          className="lg:col-span-1 bg-gray-800 rounded-xl p-4 border border-gray-700"
+          aria-label="Function details panel"
+        >
+          <FunctionDetails selectedFunction={selectedFn} />
+        </aside>
+      </section>
+    </main>
   );
-}
-
-function seedFunctions() {
-  const now = Date.now();
-  return [
-    { id: 'fn-1', name: 'auth-validate', provider: 'AWS', region: 'us-east-1', runtime: 'nodejs18.x', memory: 256, p95: 142, errorRate: 0.32, invocations: 512340, updatedAt: now - 1000 * 60 * 2, updatedAtLabel: '2m ago' },
-    { id: 'fn-2', name: 'payment-authorize', provider: 'GCP', region: 'us-central1', runtime: 'python3.11', memory: 512, p95: 188, errorRate: 1.24, invocations: 2210340, updatedAt: now - 1000 * 60 * 6, updatedAtLabel: '6m ago' },
-    { id: 'fn-3', name: 'orders-write', provider: 'Azure', region: 'westeurope', runtime: 'nodejs18.x', memory: 1024, p95: 210, errorRate: 0.82, invocations: 703212, updatedAt: now - 1000 * 60 * 9, updatedAtLabel: '9m ago' },
-    { id: 'fn-4', name: 'events-queue-handler', provider: 'GCP', region: 'us-central1', runtime: 'go1.22', memory: 256, p95: 112, errorRate: 0.18, invocations: 143220, updatedAt: now - 1000 * 60 * 12, updatedAtLabel: '12m ago' },
-    { id: 'fn-5', name: 'webhook-dispatch', provider: 'AWS', region: 'eu-west-1', runtime: 'python3.10', memory: 128, p95: 240, errorRate: 1.92, invocations: 112031, updatedAt: now - 1000 * 60 * 15, updatedAtLabel: '15m ago' },
-  ];
-}
-
-function seedInvocations() {
-  const mk = (i) => ({
-    id: `req_${(Math.random().toString(16).slice(2, 8))}`,
-    time: `12:03:${10 + i}`,
-    status: i % 7 === 0 ? 'error' : (i % 5 === 0 ? 'throttled' : 'ok'),
-    duration: 100 + Math.floor(Math.random() * 2600),
-    cold: i % 6 === 0,
-    memory: 100 + Math.floor(Math.random() * 40),
-  });
-  return Array.from({ length: 10 }, (_, i) => mk(i));
-}
-
-const layout = {
-  wrap: {
-    display: 'grid',
-    gridTemplateColumns: '1.3fr 2fr',
-    gap: 'var(--space-6)',
-  },
-  colList: { minWidth: 0 },
-  colDetails: { minWidth: 0 },
 };
+
+export default Functions;

@@ -13,52 +13,6 @@
  */
 
 import { getEnv } from "../config/env";
-import React from "react";
-import { AuthContext } from "../state/AuthContext";
-import { AppContext } from "../state/AppContext";
-
-/**
- * Internal: Retrieve auth token from contexts if available or localStorage as fallback.
- * Uses React context if within a component tree; falls back safely in non-React usage.
- */
-function getTokenFromContextsOrStorage() {
-  try {
-    // Attempt to read from contexts only if a Provider has set current value
-    // Note: React.useContext must be called inside a component. We guard by checking current dispatcher.
-    // For non-component usage, we rely on context defaultValue which is usually undefined.
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const authCtx = (() => {
-      try {
-        // Only call inside component; outside will throw rules-of-hooks warning in lint, but runtime is fine.
-        // To avoid lint noise, we do not use the hook when not in component scope.
-        return undefined;
-      } catch {
-        return undefined;
-      }
-    })();
-
-    // As a non-hook approach, try to access context via defaultValue pattern if library exposed.
-    // Many apps store token in localStorage; we use that as reliable fallback.
-    // Try localStorage fallback:
-    const lsToken =
-      typeof window !== "undefined"
-        ? window.localStorage.getItem("auth_token") ||
-          window.localStorage.getItem("token") ||
-          window.localStorage.getItem("id_token")
-        : null;
-
-    if (authCtx && authCtx.token) return authCtx.token;
-
-    // Also try AppContext if present (token may live there)
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const appCtx = undefined;
-    if (appCtx && appCtx.state && appCtx.state.token) return appCtx.state.token;
-
-    return lsToken;
-  } catch {
-    return null;
-  }
-}
 
 /**
  * Build headers with JSON defaults and Authorization if token present.
@@ -78,7 +32,7 @@ function buildHeaders(extraHeaders = {}, token) {
 /**
  * Normalize errors to a consistent shape.
  */
-function normalizeError(err, { url, method, status, body } = {}) {
+function normalizeError(err, { url, method, status } = {}) {
   const base = {
     name: "ApiClientError",
     message: "Request failed",
@@ -131,39 +85,37 @@ export async function request(method, path, options = {}) {
     retryOn = [502, 503, 504],
     // Optional signal for cancellation
     signal,
+    token: providedToken,
   } = options;
 
   const env = getEnv();
   const baseURL = env.API_BASE_URL || "";
-  if (!baseURL) {
-    if (process.env.NODE_ENV !== "test") {
-      // Avoid noisy logs in tests
-      // eslint-disable-next-line no-console
-      console.warn(
-        "[apiClient] REACT_APP_API_BASE_URL is not set; requests will use relative paths. Configure it in .env"
-      );
-    }
-  }
 
   const url = buildUrl(baseURL, path, params);
 
   // Setup timeout controller
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-  const compositeSignal = mergeSignals(signal, controller.signal);
+  const timeoutSignal = controller.signal;
+  const finalSignal = signal
+    ? mergeSignals(signal, timeoutSignal)
+    : timeoutSignal;
 
-  // Resolve auth token
+  // Resolve auth token. We avoid hooks here to keep this module usable outside components.
   const token =
-    options?.token ||
-    getTokenFromContextsOrStorage() ||
-    (typeof window !== "undefined" ? window.sessionStorage?.getItem("auth_token") : null);
+    providedToken ||
+    (typeof window !== "undefined"
+      ? window.localStorage?.getItem("auth_token") ||
+        window.localStorage?.getItem("token") ||
+        window.sessionStorage?.getItem("auth_token")
+      : null);
 
   const finalHeaders = buildHeaders(headers, token);
 
   const fetchOptions = {
     method,
     headers: finalHeaders,
-    signal: compositeSignal,
+    signal: finalSignal,
   };
 
   if (body !== undefined && body !== null) {
@@ -226,7 +178,7 @@ export async function request(method, path, options = {}) {
 
   // If loop exits without return/throw (shouldn't happen), throw last error or generic.
   clearTimeout(timeoutId);
-  throw lastError || normalizeError(new Error("Unknown request failure"), { url, method });
+  throw lastError || normalizeError(new Error("Unknown request failure"), { url: path, method });
 }
 
 /**
@@ -250,11 +202,11 @@ export const api = {
  * Build full URL with query params.
  */
 function buildUrl(baseURL, path, params) {
-  let final = "";
+  let final;
   if (!baseURL) {
     final = path;
   } else {
-    final = `${baseURL.replace(/\/+$/, "")}/${String(path || "").replace(/^\/+/, "")}`;
+    final = `${baseURL.replace(/\/+$/, "")}/${String(path || "").replace(/^\//, "")}`;
   }
   if (params && typeof params === "object") {
     const usp = new URLSearchParams();
@@ -308,7 +260,8 @@ export const MetricsAPI = {
   /** Fetch metrics overview */
   listOverview: (params) => api.get("/metrics/overview", { params }),
   /** Fetch detailed time series for a metric */
-  timeseries: (metricName, params) => api.get(`/metrics/${encodeURIComponent(metricName)}/series`, { params }),
+  timeseries: (metricName, params) =>
+    api.get(`/metrics/${encodeURIComponent(metricName)}/series`, { params }),
 };
 
 export const AnomaliesAPI = {
@@ -335,16 +288,21 @@ export const SecurityAPI = {
   /** Get finding by id */
   getFinding: (id) => api.get(`/security/findings/${encodeURIComponent(id)}`),
   /** Execute workflow/action on finding */
-  runWorkflow: (id, body) => api.post(`/security/findings/${encodeURIComponent(id)}/workflow`, body),
+  runWorkflow: (id, body) =>
+    api.post(`/security/findings/${encodeURIComponent(id)}/workflow`, body),
 };
 
 export const FunctionsAPI = {
   /** List functions */
   list: (params) => api.get("/functions", { params }),
-  /** Get function details */
+  /** Get function details by id */
   getById: (id) => api.get(`/functions/${encodeURIComponent(id)}`),
-  /** Get invocations for function */
-  invocations: (id, params) => api.get(`/functions/${encodeURIComponent(id)}/invocations`, { params }),
+  /** Get invocations for function id */
+  invocations: (id, params) =>
+    api.get(`/functions/${encodeURIComponent(id)}/invocations`, { params }),
+  /** Get logs for function id */
+  logs: (id, params) =>
+    api.get(`/functions/${encodeURIComponent(id)}/logs`, { params }),
 };
 
 /**
@@ -356,16 +314,25 @@ export const FunctionsAPI = {
 export async function getTopology(params) {
   const { USE_MOCKS } = getEnv();
   if (USE_MOCKS) {
+    // Load mock topology from local JSON
     const res = await fetch('/mocks/data/topology.json');
     if (!res.ok) {
-      throw normalizeError({ message: 'Failed to fetch topology (mock)', status: res.status }, { url: '/mocks/data/topology.json', method: 'GET' });
+      throw normalizeError(
+        { message: 'Failed to fetch topology (mock)', status: res.status },
+        { url: '/mocks/data/topology.json', method: 'GET' }
+      );
     }
     return res.json();
   }
   return api.get('/topology', { params });
 }
 
-// Default export retains common helpers for convenience.
+/**
+ * PUBLIC_INTERFACE
+ * apiClient (default)
+ * Aggregates helpers and provides mock-aware convenience for Functions data
+ * consumed by the Functions page components.
+ */
 const apiClient = {
   request,
   api,
@@ -375,6 +342,104 @@ const apiClient = {
   SecurityAPI,
   FunctionsAPI,
   getTopology,
+
+  // PUBLIC_INTERFACE
+  async getDashboard() {
+    const { USE_MOCKS } = getEnv();
+    if (USE_MOCKS) {
+      const mod = await import("../mocks/data/metrics.json");
+      return mod.default || [];
+    }
+    return api.get("/dashboard");
+  },
+
+  // PUBLIC_INTERFACE
+  async getSecurity() {
+    const { USE_MOCKS } = getEnv();
+    if (USE_MOCKS) {
+      const mod = await import("../mocks/data/security.json");
+      return mod.default || [];
+    }
+    return api.get("/security");
+  },
+
+  // PUBLIC_INTERFACE
+  async getCosts() {
+    const { USE_MOCKS } = getEnv();
+    if (USE_MOCKS) {
+      const mod = await import("../mocks/data/costs.json");
+      return mod.default || [];
+    }
+    return api.get("/costs");
+  },
+
+  // PUBLIC_INTERFACE
+  async getAnomalies() {
+    const { USE_MOCKS } = getEnv();
+    if (USE_MOCKS) {
+      const mod = await import("../mocks/data/anomalies.json");
+      return mod.default || [];
+    }
+    return api.get("/anomalies");
+  },
+
+  // PUBLIC_INTERFACE
+  async getFunctions() {
+    const { USE_MOCKS } = getEnv();
+    if (USE_MOCKS) {
+      const mod = await import("../mocks/data/functions.json");
+      return mod.default || [];
+    }
+    return api.get("/functions");
+  },
+
+  // PUBLIC_INTERFACE
+  async getFunctionInvocations(fn) {
+    const { USE_MOCKS } = getEnv();
+    if (USE_MOCKS) {
+      // synthesize invocations from function attributes
+      const now = new Date();
+      const items = Array.from({ length: 12 }).map((_, i) => {
+        const t = new Date(now.getTime() - i * 60 * 1000);
+        const cold = Math.random() < 0.15;
+        const err = Math.random() < (fn?.errorRate || 0) / 100;
+        return {
+          time: t.toISOString(),
+          durationMs: Math.round((fn?.p95LatencyMs || 180) * (0.6 + Math.random())),
+          memoryMb: fn?.memoryMb || 256,
+          coldStart: cold,
+          status: err ? "error" : "ok",
+          requestId: `${fn?.name || "fn"}-${t.getTime()}-${i}`,
+        };
+      });
+      return items;
+    }
+    const id = encodeURIComponent(fn?.id || fn?.name || "");
+    return FunctionsAPI.invocations(id);
+  },
+
+  // PUBLIC_INTERFACE
+  async getFunctionLogs(fn) {
+    const { USE_MOCKS } = getEnv();
+    if (USE_MOCKS) {
+      const now = new Date();
+      const items = Array.from({ length: 10 }).map((_, i) => {
+        const t = new Date(now.getTime() - i * 90 * 1000);
+        const error = Math.random() < (fn?.errorRate || 0) / 100;
+        return {
+          time: t.toISOString(),
+          level: error ? "error" : "info",
+          message: error
+            ? `Error: upstream timeout calling payment API at ${t.toISOString()}`
+            : `Processed request in ${Math.round((fn?.p95LatencyMs || 200) * (0.5 + Math.random()))}ms`,
+        };
+      });
+      return items;
+    }
+    const id = encodeURIComponent(fn?.id || fn?.name || "");
+    return FunctionsAPI.logs(id);
+  },
 };
 
+export { apiClient };
 export default apiClient;
