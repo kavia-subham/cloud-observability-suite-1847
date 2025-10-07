@@ -5,6 +5,8 @@ export { default as SLOStatus } from './SLOStatus';
 // Anomalies
 export { default as AnomalyList } from './anomalies/AnomalyList';
 export { default as AnomalyDetails } from './anomalies/AnomalyDetails';
+export { default as RootCausePanel } from './anomalies/RootCausePanel';
+export { default as AiExplanation } from './anomalies/AiExplanation';
 
 // Cost
 export { default as CostBreakdown } from './cost/CostBreakdown';
