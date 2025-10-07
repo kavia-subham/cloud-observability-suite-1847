@@ -1,45 +1,28 @@
-"use strict";
+ // PUBLIC_INTERFACE
+ export function getEnv() {
+   /**
+    * Returns environment variables required by the app.
+    * - REACT_APP_WS_URL: Base WebSocket URL (e.g., wss://example.com/ws). If missing, a warning is logged.
+    * - REACT_APP_USE_MOCKS: "true" or "false" to enable mock/no-op behavior for services like WebSocket.
+    *
+    * Note: Values are read from process.env as provided by the React build environment.
+    */
+   const WS_URL = process.env.REACT_APP_WS_URL || "";
+   const USE_MOCKS = String(process.env.REACT_APP_USE_MOCKS || "").toLowerCase() === "true";
 
-/**
- * Environment config reader for the frontend.
- * Reads React env vars (prefixed with REACT_APP_) and applies safe defaults with warnings.
- * Exports getEnv() which can be called anywhere, and a cached env object.
- */
+   if (!WS_URL && !USE_MOCKS) {
+     // eslint-disable-next-line no-console
+     console.warn(
+       "[env] REACT_APP_WS_URL is not set; WebSocket client will not be able to connect unless mocks are enabled."
+     );
+   }
 
-// PUBLIC_INTERFACE
-export function getEnv() {
-  /** Returns normalized environment variables used by the app. */
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "";
-  const WS_URL = process.env.REACT_APP_WS_URL || "";
-  const USE_MOCKS = parseBoolean(process.env.REACT_APP_USE_MOCKS, false);
-  const AUTH_PROVIDER = process.env.REACT_APP_AUTH_PROVIDER || "basic";
+   return {
+     WS_URL,
+     USE_MOCKS,
+   };
+ }
 
-  if (!API_BASE_URL && process.env.NODE_ENV !== "test") {
-    // eslint-disable-next-line no-console
-    console.warn(
-      "[env] REACT_APP_API_BASE_URL is not set. API calls will use relative paths. Set this in your .env"
-    );
-  }
-  if (!WS_URL && process.env.NODE_ENV !== "test") {
-    // eslint-disable-next-line no-console
-    console.warn("[env] REACT_APP_WS_URL is not set. Realtime features may be disabled.");
-  }
-
-  return {
-    API_BASE_URL,
-    WS_URL,
-    USE_MOCKS,
-    AUTH_PROVIDER,
-  };
-}
-
-function parseBoolean(value, defaultVal = false) {
-  if (value === undefined || value === null) return defaultVal;
-  const normalized = String(value).trim().toLowerCase();
-  if (["1", "true", "yes", "y", "on"].includes(normalized)) return true;
-  if (["0", "false", "no", "n", "off"].includes(normalized)) return false;
-  return defaultVal;
-}
-
-const env = getEnv();
-export default env;
+ // PUBLIC_INTERFACE
+ export const ENV = getEnv();
+ /** This is a public object for convenient named imports. */
