@@ -1,11 +1,22 @@
-import { SET_THEME, SET_METRICS, SET_ANOMALIES, SET_TOPOLOGY, SET_COST } from './actions';
+import { SET_THEME, SET_METRICS, SET_ANOMALIES, SET_TOPOLOGY, SET_COST, SET_PROFILE, SET_NOTIFICATIONS } from './actions';
 
 // Initial state of the AppContext
 export const initialState = {
   settings: {
     // default theme; will be hydrated from localStorage if available
     theme: 'dark',
-    // other settings can be added here (e.g., compactMode, notifications)
+    // user profile stub
+    profile: {
+      fullName: '',
+      title: '',
+      timezone: 'UTC',
+    },
+    // notification preferences
+    notifications: {
+      alertsEnabled: true,
+      weeklySummary: true,
+      channels: { email: true, sms: false, inApp: true },
+    },
   },
   data: {
     metrics: null,   // placeholder for metrics data
@@ -18,7 +29,7 @@ export const initialState = {
 /**
  * Root reducer for AppContext managing app-wide slices.
  * Handles:
- * - settings.theme with persistence handled in provider side effect
+ * - settings.theme, settings.profile, settings.notifications
  * - data placeholders for metrics, anomalies, topology, cost
  */
 export function appReducer(state = initialState, action) {
@@ -30,6 +41,34 @@ export function appReducer(state = initialState, action) {
         settings: {
           ...state.settings,
           theme: nextTheme,
+        },
+      };
+    }
+
+    case SET_PROFILE: {
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          profile: { ...state.settings.profile, ...action.payload },
+        },
+      };
+    }
+
+    case SET_NOTIFICATIONS: {
+      const next = action.payload || {};
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          notifications: {
+            ...state.settings.notifications,
+            ...next,
+            channels: {
+              ...state.settings.notifications.channels,
+              ...(next.channels || {}),
+            },
+          },
         },
       };
     }
