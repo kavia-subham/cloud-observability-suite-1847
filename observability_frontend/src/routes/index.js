@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 // Layout
 import MainLayout from '../layouts/MainLayout';
@@ -13,22 +13,26 @@ import Security from '../pages/Security';
 import Cost from '../pages/Cost';
 import Settings from '../pages/Settings';
 import Login from '../pages/Login';
+import { useAuth } from '../state/AuthContext';
 
 /**
- * Temporary, stubbed auth hook returning always-authenticated.
- * Replace with real Auth Context/Provider later.
+ * Build a returnTo URL for redirecting to login with the originally requested path.
  */
-const useStubAuth = () => {
-  const isAuthenticated = true;
-  return { isAuthenticated };
-};
+function useReturnToQuery() {
+  const location = useLocation();
+  const pathname = location.pathname + (location.search || '') + (location.hash || '');
+  const params = new URLSearchParams();
+  params.set('returnTo', pathname);
+  return `?${params.toString()}`;
+}
 
 // PUBLIC_INTERFACE
 export const ProtectedRoute = ({ children }) => {
-  /** Guard for private routes using stubbed auth state */
-  const { isAuthenticated } = useStubAuth();
+  /** Guard for private routes using AuthContext */
+  const { isAuthenticated } = useAuth();
+  const returnTo = useReturnToQuery();
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={`/login${returnTo}`} replace />;
   }
   return children;
 };
@@ -36,7 +40,7 @@ export const ProtectedRoute = ({ children }) => {
 // PUBLIC_INTERFACE
 export const PublicRoute = ({ children }) => {
   /** Guard for public-only routes: redirects authenticated users to home */
-  const { isAuthenticated } = useStubAuth();
+  const { isAuthenticated } = useAuth();
   if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }

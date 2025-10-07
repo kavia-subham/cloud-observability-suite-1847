@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../state/AuthContext';
 
 /**
  * MainLayout
@@ -15,6 +16,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 export default function MainLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { isAuthenticated, logout } = useAuth();
 
   // Persistent sidebar collapsed state (desktop)
   const [collapsed, setCollapsed] = useState(() => {
@@ -172,14 +174,32 @@ export default function MainLayout() {
         </nav>
 
         <div style={styles.sidebarFooter}>
-          <button
-            style={styles.outlineBtn}
-            onClick={() => navigate('/login')}
-            title="Sign in"
-            aria-label="Sign in"
-          >
-            {(!isMobile && !collapsed) || isMobile ? 'Sign in' : '🔐'}
-          </button>
+          {isAuthenticated ? (
+            <button
+              style={styles.outlineBtn}
+              onClick={async () => {
+                await logout();
+                const returnTo = location.pathname + (location.search || '') + (location.hash || '');
+                navigate(`/login?returnTo=${encodeURIComponent(returnTo)}`, { replace: true });
+              }}
+              title="Sign out"
+              aria-label="Sign out"
+            >
+              {(!isMobile && !collapsed) || isMobile ? 'Sign out' : '🔓'}
+            </button>
+          ) : (
+            <button
+              style={styles.outlineBtn}
+              onClick={() => {
+                const returnTo = location.pathname + (location.search || '') + (location.hash || '');
+                navigate(`/login?returnTo=${encodeURIComponent(returnTo)}`);
+              }}
+              title="Sign in"
+              aria-label="Sign in"
+            >
+              {(!isMobile && !collapsed) || isMobile ? 'Sign in' : '🔐'}
+            </button>
+          )}
         </div>
       </aside>
 
