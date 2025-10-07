@@ -1,0 +1,22 @@
+[
+  {
+    "id": "an-1001",
+    "title": "Spike in error rate for checkout service",
+    "service": "checkout",
+    "severity": "high",
+    "detectedAt": "2025-10-07T10:20:00Z",
+    "status": "open",
+    "metrics": { "errorRate": 0.045, "baselineErrorRate": 0.01 },
+    "aiExplanation": "A recent deploy increased timeout exceptions; upstream payment API latency also elevated."
+  },
+  {
+    "id": "an-1002",
+    "title": "Elevated p99 latency on user-profile",
+    "service": "user-profile",
+    "severity": "medium",
+    "detectedAt": "2025-10-07T10:24:00Z",
+    "status": "investigating",
+    "metrics": { "p99": 520, "baselineP99": 350 },
+    "aiExplanation": "Cache hit ratio dropped to 75%. Probable cache invalidation storm."
+  }
+]

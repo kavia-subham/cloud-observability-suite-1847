@@ -1,0 +1,39 @@
+{
+  "summary": {
+    "openFindings": 14,
+    "critical": 2,
+    "high": 4,
+    "medium": 5,
+    "low": 3
+  },
+  "findings": [
+    {
+      "id": "sec-001",
+      "title": "Overly permissive IAM role on analytics",
+      "severity": "high",
+      "service": "analytics",
+      "status": "open",
+      "reportedAt": "2025-10-04T09:15:00Z",
+      "description": "Role allows wildcard actions on S3 buckets.",
+      "recommendation": "Restrict to explicit actions and bucket ARNs."
+    },
+    {
+      "id": "sec-002",
+      "title": "Publicly accessible storage bucket",
+      "severity": "critical",
+      "service": "notifications",
+      "status": "open",
+      "reportedAt": "2025-10-06T11:55:00Z",
+      "description": "Bucket policy allows public read.",
+      "recommendation": "Remove public access and enforce least privilege."
+    }
+  ],
+  "workflows": [
+    {
+      "id": "wf-11",
+      "name": "Auto-create Jira ticket for high+ findings",
+      "enabled": true,
+      "lastRun": "2025-10-07T09:00:00Z"
+    }
+  ]
+}

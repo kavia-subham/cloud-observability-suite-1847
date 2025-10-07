@@ -1,0 +1,17 @@
+{
+  "nodes": [
+    { "id": "api-gateway", "type": "gateway", "label": "API Gateway", "status": "healthy" },
+    { "id": "auth", "type": "function", "label": "Auth", "status": "healthy" },
+    { "id": "user-profile", "type": "function", "label": "User Profile", "status": "warning" },
+    { "id": "checkout", "type": "function", "label": "Checkout", "status": "critical" },
+    { "id": "payments", "type": "external", "label": "Payments API", "status": "degraded" },
+    { "id": "db", "type": "database", "label": "UsersDB", "status": "healthy" }
+  ],
+  "edges": [
+    { "source": "api-gateway", "target": "auth", "latency": 25, "rps": 350 },
+    { "source": "api-gateway", "target": "user-profile", "latency": 45, "rps": 500 },
+    { "source": "api-gateway", "target": "checkout", "latency": 55, "rps": 200 },
+    { "source": "checkout", "target": "payments", "latency": 180, "rps": 180 },
+    { "source": "user-profile", "target": "db", "latency": 15, "rps": 520 }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "summary": {
+    "monthlyTotal": 1843.22,
+    "projectedTotal": 1920.5,
+    "savingsOpportunities": 7
+  },
+  "services": [
+    { "name": "auth", "monthly": 180.12, "projected": 190.6, "trend": "up" },
+    { "name": "user-profile", "monthly": 420.33, "projected": 408.1, "trend": "down" },
+    { "name": "checkout", "monthly": 520.0, "projected": 560.2, "trend": "up" },
+    { "name": "analytics", "monthly": 300.77, "projected": 290.1, "trend": "flat" },
+    { "name": "notifications", "monthly": 122.0, "projected": 125.0, "trend": "flat" }
+  ],
+  "optimizations": [
+    { "id": "opt-1", "title": "Right-size memory for auth", "impactMonthly": 18.3, "effort": "low" },
+    { "id": "opt-2", "title": "Enable provisioned concurrency only on peak hours", "impactMonthly": 65.0, "effort": "medium" },
+    { "id": "opt-3", "title": "Consolidate CloudWatch metrics", "impactMonthly": 22.4, "effort": "low" }
+  ]
+}

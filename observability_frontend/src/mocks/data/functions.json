@@ -1,0 +1,35 @@
+[
+  {
+    "name": "auth",
+    "provider": "aws",
+    "runtime": "nodejs18.x",
+    "avgDurationMs": 45,
+    "p95DurationMs": 120,
+    "invocationsPerMin": 350,
+    "errorsPerMin": 1,
+    "coldStartsPerHour": 2,
+    "lastDeployment": "2025-10-06T17:35:00Z"
+  },
+  {
+    "name": "user-profile",
+    "provider": "gcp",
+    "runtime": "python311",
+    "avgDurationMs": 78,
+    "p95DurationMs": 210,
+    "invocationsPerMin": 500,
+    "errorsPerMin": 2,
+    "coldStartsPerHour": 4,
+    "lastDeployment": "2025-10-07T08:15:00Z"
+  },
+  {
+    "name": "checkout",
+    "provider": "azure",
+    "runtime": "dotnet7",
+    "avgDurationMs": 120,
+    "p95DurationMs": 320,
+    "invocationsPerMin": 200,
+    "errorsPerMin": 8,
+    "coldStartsPerHour": 6,
+    "lastDeployment": "2025-10-05T22:10:00Z"
+  }
+]
