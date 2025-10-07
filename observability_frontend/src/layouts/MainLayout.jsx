@@ -1,54 +1,49 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, NavLink, Outlet } from 'react-router-dom';
 
-// PUBLIC_INTERFACE
-export default function MainLayout({ title, children }) {
-  const location = useLocation();
-  const isActive = (path) => (location.pathname === path ? 'active' : '');
-
+/**
+ * PUBLIC_INTERFACE
+ * MainLayout
+ * Minimal main layout structure reverting toolbar alignment and aria-label changes.
+ */
+const MainLayout = () => {
   return (
-    <div className="min-h-screen bg-black text-white flex">
-      <aside className="w-64 p-4 border-r border-gray-800 sidebar" aria-label="Primary">
-        <div className="mb-6 text-xl font-bold">Observability</div>
-        <nav className="space-y-2">
-          <Link className={`nav-item block hover:bg-gray-800 ${isActive('/')}`} to="/">
-            Dashboard
-          </Link>
-          <Link className={`nav-item block hover:bg-gray-800 ${isActive('/topology')}`} to="/topology">
-            Topology
-          </Link>
-          <Link className={`nav-item block hover:bg-gray-800 ${isActive('/functions')}`} to="/functions">
-            Functions
-          </Link>
-          <Link className={`nav-item block hover:bg-gray-800 ${isActive('/alerts')}`} to="/alerts">
-            Alerts
-          </Link>
-          <Link className={`nav-item block hover:bg-gray-800 ${isActive('/cost')}`} to="/cost">
-            Cost
-          </Link>
-          <Link className={`nav-item block hover:bg-gray-800 ${isActive('/security')}`} to="/security">
-            Security
-          </Link>
-          <Link className={`nav-item block hover:bg-gray-800 ${isActive('/settings')}`} to="/settings">
-            Settings
-          </Link>
+    <div className="main-layout" style={{ display: 'grid', gridTemplateColumns: '240px 1fr', minHeight: '100vh' }}>
+      <aside style={{ background: '#111827', borderRight: '1px solid #1f2937', padding: '16px 12px' }}>
+        <div style={{ fontWeight: 700, marginBottom: 12 }}>
+          <Link to="/" style={{ color: '#fff' }}>Observability</Link>
+        </div>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <NavLink to="/dashboard">Dashboard</NavLink>
+          <NavLink to="/topology">Topology</NavLink>
+          <NavLink to="/alerts">Alerts</NavLink>
+          <NavLink to="/functions">Functions</NavLink>
+          <NavLink to="/security">Security</NavLink>
+          <NavLink to="/cost">Cost</NavLink>
+          <NavLink to="/settings">Settings</NavLink>
         </nav>
       </aside>
-      <div className="flex-1">
-        <header className="page-toolbar border-b border-gray-800" role="region" aria-label="Page toolbar">
-          <button className="chip bg-gray-800">Prod</button>
-          <button className="chip bg-gray-800">EU-West</button>
-          <input
-            className="input"
-            type="search"
-            placeholder="Search"
-            aria-label="Search solutions, logs, metrics"
-          />
-          <div className="toolbar-spacer" />
-          <button className="btn-primary">New Dashboard</button>
+
+      <div>
+        <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #1f2937' }}>
+          <div>
+            <input
+              type="text"
+              placeholder="Search"
+              style={{ padding: '8px 10px', borderRadius: 6, border: '1px solid #374151', background: '#111827', color: '#e5e7eb', width: 280 }}
+            />
+          </div>
+          <div>
+            <Link to="/profile" style={{ color: '#e5e7eb' }}>Profile</Link>
+          </div>
         </header>
-        <div>{children}</div>
+
+        <main style={{ padding: 16 }}>
+          <Outlet />
+        </main>
       </div>
     </div>
   );
-}
+};
+
+export default MainLayout;

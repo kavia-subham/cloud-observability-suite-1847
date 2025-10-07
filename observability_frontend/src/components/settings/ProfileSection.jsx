@@ -1,29 +1,43 @@
 import React from 'react';
 
-// PUBLIC_INTERFACE
-export default function ProfileSection() {
-  /** This is a public component to be used on the Settings page. */
+/**
+ * PUBLIC_INTERFACE
+ * ProfileSection
+ * A simple profile editor with minimal markup, reverting to the prior structure.
+ */
+const ProfileSection = ({ value = {}, onChange = () => {} }) => {
+  const { name = '', email = '' } = value;
+
+  const update = (field, val) => {
+    onChange({ ...value, [field]: val });
+  };
+
   return (
-    <div className="bg-gray-800 rounded p-4">
-      <label className="block field-label" htmlFor="profile-fullname">Full name</label>
-      <input
-        id="profile-fullname"
-        type="text"
-        className="w-full input"
-        placeholder="Your name"
-        aria-label="Full name"
-      />
-
-      <label className="block field-label" htmlFor="profile-email" style={{ marginTop: 16 }}>Email</label>
-      <input
-        id="profile-email"
-        type="email"
-        className="w-full input"
-        placeholder="you@example.com"
-        aria-label="Email address"
-      />
-
-      <p className="field-hint">Your email will be used for notifications and login.</p>
+    <div>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+        <div style={{ flex: 1 }}>
+          <label style={{ display: 'block', marginBottom: 6 }}>Name</label>
+          <input
+            type="text"
+            value={name}
+            onChange={e => update('name', e.target.value)}
+            style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #334155', background: '#111827', color: '#e5e7eb' }}
+            placeholder="Your full name"
+          />
+        </div>
+        <div style={{ flex: 1 }}>
+          <label style={{ display: 'block', marginBottom: 6 }}>Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={e => update('email', e.target.value)}
+            style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #334155', background: '#111827', color: '#e5e7eb' }}
+            placeholder="you@example.com"
+          />
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default ProfileSection;

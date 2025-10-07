@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import './App.css';
-import './styles/theme.css';
 import RoutesIndex from './routes';
 
 // PUBLIC_INTERFACE

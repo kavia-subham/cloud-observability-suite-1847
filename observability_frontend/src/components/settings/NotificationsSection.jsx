@@ -1,37 +1,35 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-// PUBLIC_INTERFACE
-export default function NotificationsSection() {
-  const [emailEnabled, setEmailEnabled] = useState(true);
-  const [smsEnabled, setSmsEnabled] = useState(false);
+/**
+ * PUBLIC_INTERFACE
+ * NotificationsSection
+ * A simplified notifications preferences section reverting to prior structure.
+ */
+const NotificationsSection = ({ value = {}, onChange = () => {} }) => {
+  const { email = true, sms = false, push = true } = value;
+
+  const toggle = (field) => {
+    onChange({ ...value, [field]: !value[field] });
+  };
 
   return (
-    <div className="bg-gray-800 rounded p-4">
-      <div className="flex items-center justify-between">
-        <span className="field-label">Email alerts</span>
-        <input
-          type="checkbox"
-          role="switch"
-          aria-checked={emailEnabled}
-          aria-label="Toggle email alerts"
-          checked={emailEnabled}
-          onChange={() => setEmailEnabled(!emailEnabled)}
-        />
+    <div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <input type="checkbox" checked={!!email} onChange={() => toggle('email')} />
+          Email alerts
+        </label>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <input type="checkbox" checked={!!sms} onChange={() => toggle('sms')} />
+          SMS alerts
+        </label>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <input type="checkbox" checked={!!push} onChange={() => toggle('push')} />
+          Push notifications
+        </label>
       </div>
-      <p className="field-hint">Get critical alerts via email.</p>
-
-      <div className="flex items-center justify-between" style={{ marginTop: 16 }}>
-        <span className="field-label">SMS alerts</span>
-        <input
-          type="checkbox"
-          role="switch"
-          aria-checked={smsEnabled}
-          aria-label="Toggle SMS alerts"
-          checked={smsEnabled}
-          onChange={() => setSmsEnabled(!smsEnabled)}
-        />
-      </div>
-      <p className="field-hint">Receive SMS for high-priority incidents.</p>
     </div>
   );
-}
+};
+
+export default NotificationsSection;

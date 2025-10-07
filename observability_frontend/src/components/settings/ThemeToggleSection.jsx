@@ -1,17 +1,45 @@
 import React from 'react';
 
-// PUBLIC_INTERFACE
-export default function ThemeToggleSection() {
-  /** This is a public component to be used on the Settings page. */
+/**
+ * PUBLIC_INTERFACE
+ * ThemeToggleSection
+ * Simple theme toggle reverting to prior structure.
+ */
+const ThemeToggleSection = ({ value = 'system', onChange = () => {} }) => {
   return (
-    <div className="bg-gray-800 rounded p-4">
-      <label className="block field-label" htmlFor="theme-select">Theme</label>
-      <select id="theme-select" className="w-full input" aria-label="Theme selection">
-        <option>Dark</option>
-        <option>Light</option>
-        <option>System</option>
-      </select>
-      <p className="field-hint">Choose your preferred theme.</p>
+    <div style={{ display: 'flex', gap: 12 }}>
+      <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <input
+          type="radio"
+          name="theme"
+          value="light"
+          checked={value === 'light'}
+          onChange={() => onChange('light')}
+        />
+        Light
+      </label>
+      <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <input
+          type="radio"
+          name="theme"
+          value="dark"
+          checked={value === 'dark'}
+          onChange={() => onChange('dark')}
+        />
+        Dark
+      </label>
+      <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <input
+          type="radio"
+          name="theme"
+          value="system"
+          checked={value === 'system'}
+          onChange={() => onChange('system')}
+        />
+        System
+      </label>
     </div>
   );
-}
+};
+
+export default ThemeToggleSection;
