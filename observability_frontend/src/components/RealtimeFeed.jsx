@@ -1,122 +1,157 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { getClient, subscribe as wsSubscribe, unsubscribe as wsUnsubscribe, on as wsOn, off as wsOff, connect as wsConnect } from '../services/wsClient';
 
 /**
+ * PUBLIC_INTERFACE
  * RealtimeFeed
- * Displays a list of incoming events/updates.
- * Placeholder implementation using mock data and interval-based updates.
- * Designed to be replaced with WebSocket later.
+ * Subscribes to wsClient for real-time events and renders a list with newest first.
+ * Handles connect/disconnect, errors, and empty state.
  */
-// PUBLIC_INTERFACE
-export default function RealtimeFeed({ title = 'Realtime Feed', initialItems = mockItems, maxItems = 12, pollMs = 3000 }) {
-  const [items, setItems] = useState(initialItems);
+export default function RealtimeFeed() {
+  const [events, setEvents] = useState([]);
+  const [status, setStatus] = useState('connecting'); // connecting | open | closed | error
+  const unsubRef = useRef(null);
 
   useEffect(() => {
-    // Simulate a live feed by pushing a new mock item every pollMs
-    const interval = setInterval(() => {
-      const next = generateMockItem();
-      setItems((prev) => [next, ...prev].slice(0, maxItems));
-    }, pollMs);
-    return () => clearInterval(interval);
-  }, [maxItems, pollMs]);
+    try {
+      setStatus('connecting');
+      // Ensure a connection attempt is made (no-op under mocks)
+      wsConnect();
+      // Listen to global socket events to reflect connection status
+      const offOpen = wsOn('open', () => setStatus('open'));
+      const offClose = wsOn('close', () => setStatus('closed'));
+      const offError = wsOn('error', () => setStatus('error'));
+
+      // Subscribe to events channel
+      const unsub = wsSubscribe('events', (payloadOrEnvelope) => {
+        // If wsClient delivers envelope: { channel, data }, unwrap data; else pass through
+        const payload = payloadOrEnvelope?.data ?? payloadOrEnvelope;
+        setEvents((prev) => {
+          const next = [{ id: genId(), ts: Date.now(), payload }, ...prev];
+          return next.slice(0, 100);
+        });
+      });
+
+      unsubRef.current = () => {
+        try { unsub && unsub(); } catch {}
+        try { offOpen && offOpen(); } catch {}
+        try { offClose && offClose(); } catch {}
+        try { offError && offError(); } catch {}
+      };
+    } catch (e) {
+      setStatus('error');
+    }
+
+    return () => {
+      if (typeof unsubRef.current === 'function') {
+        try { unsubRef.current(); } catch {}
+      } else {
+        // Fallback: attempt explicit unsubscription by channel if API available
+        try { wsUnsubscribe('events'); } catch {}
+        try { wsOff('open'); } catch {}
+        try { wsOff('close'); } catch {}
+        try { wsOff('error'); } catch {}
+      }
+    };
+  }, []);
 
   return (
-    <div className="surface" style={styles.card} aria-live="polite">
-      <div style={styles.header}>
-        <h3 className="h3" style={{ margin: 0 }}>{title}</h3>
-        <span style={styles.pill}>Live</span>
+    <div className="rounded-2xl bg-gray-800 border border-gray-700 p-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">Realtime Feed</h3>
+          <p className="text-gray-400 text-sm">Live anomalies, errors, deployments, and cost spikes</p>
+        </div>
+        <StatusBadge status={status} />
       </div>
-      <ul style={styles.list}>
-        {items.map((it) => (
-          <li key={it.id} style={styles.item}>
-            <span style={{ ...styles.sevDot, background: sevColor[it.severity] }} />
-            <div style={styles.itemBody}>
-              <div style={styles.itemTitle}>{it.title}</div>
-              <div style={styles.itemMeta}>
-                <span style={{ color: 'var(--color-text-muted)' }}>{it.provider} • {it.region}</span>
-                <span style={{ color: 'var(--color-text-muted)' }}>{it.time}</span>
-              </div>
-            </div>
-            <button style={styles.cta} className="btn btn-outline">Inspect</button>
-          </li>
-        ))}
-      </ul>
+
+      <div className="mt-4 space-y-2 max-h-80 overflow-auto pr-1">
+        {events.length === 0 ? (
+          <div className="text-gray-400 text-sm">
+            {status === 'connecting' && 'Connecting to live stream...'}
+            {status === 'open' && 'Listening for events...'}
+            {status === 'closed' && 'Connection closed.'}
+            {status === 'error' && 'Stream error. Retrying or check connection.'}
+          </div>
+        ) : (
+          events.map((e) => (
+            <FeedItem key={e.id} item={e} />
+          ))
+        )}
+      </div>
     </div>
   );
 }
 
-const styles = {
-  card: { padding: 'var(--space-6)' },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 'var(--space-4)',
-  },
-  pill: {
-    background: 'var(--gradient-accent)',
-    border: '1px solid var(--color-border)',
-    borderRadius: 'var(--radius-full)',
-    padding: '4px 10px',
-    fontSize: 'var(--text-sm)',
-  },
-  list: {
-    listStyle: 'none',
-    padding: 0,
-    margin: 0,
-    display: 'grid',
-    gap: 'var(--space-3)',
-  },
-  item: {
-    display: 'grid',
-    gridTemplateColumns: 'auto 1fr auto',
-    gap: 'var(--space-3)',
-    alignItems: 'center',
-    padding: '10px 12px',
-    borderRadius: 'var(--radius-md)',
-    border: '1px solid var(--color-border)',
-    background: 'rgba(255,255,255,0.03)',
-  },
-  sevDot: {
-    width: 10, height: 10, borderRadius: '50%',
-    boxShadow: '0 0 0 2px rgba(255,255,255,0.06)',
-  },
-  itemBody: {
-    display: 'flex', flexDirection: 'column', gap: 4,
-  },
-  itemTitle: {
-    fontWeight: 'var(--weight-semibold)',
-  },
-  itemMeta: {
-    display: 'flex', gap: 'var(--space-4)', fontSize: 'var(--text-sm)',
-  },
-  cta: {
-    padding: '6px 10px',
-  },
-};
-
-const sevColor = {
-  info: '#10B981',
-  warn: '#F97316',
-  error: '#EF4444',
-};
-
-const mockItems = [
-  { id: '1', severity: 'warn', title: 'P95 latency spiked for payment-authorize', provider: 'AWS', region: 'us-east-1', time: 'now' },
-  { id: '2', severity: 'info', title: 'New function discovered: gcp-report-daily', provider: 'GCP', region: 'us-central1', time: '2m ago' },
-  { id: '3', severity: 'error', title: 'Error rate increased for auth-validate (1.2%)', provider: 'Azure', region: 'westeurope', time: '4m ago' },
-];
-
-function generateMockItem() {
-  const pool = [
-    { severity: 'warn', title: 'Cold start detected on analytics-ingest', provider: 'AWS', region: 'eu-west-1' },
-    { severity: 'info', title: 'Autoscaling suggestion available for queue-processor', provider: 'GCP', region: 'us-central1' },
-    { severity: 'error', title: 'Function timeout for webhook-dispatch', provider: 'Azure', region: 'eastus' },
-    { severity: 'info', title: 'SLO burn rate returning to normal for checkout', provider: 'AWS', region: 'us-west-2' },
-  ];
-  const pick = pool[Math.floor(Math.random() * pool.length)];
-  return {
-    id: String(Date.now()),
-    ...pick,
-    time: 'now',
+function StatusBadge({ status }) {
+  const map = {
+    connecting: { dot: 'bg-sky-400', text: 'text-sky-200', label: 'Connecting' },
+    open: { dot: 'bg-emerald-400', text: 'text-emerald-200', label: 'Live' },
+    closed: { dot: 'bg-gray-400', text: 'text-gray-300', label: 'Closed' },
+    error: { dot: 'bg-red-500', text: 'text-red-300', label: 'Error' },
   };
+  const s = map[status] || map.connecting;
+  return (
+    <div className={`rounded-full border ${s.text} border-gray-600 px-3 py-1 text-sm flex items-center gap-2`}>
+      <span className={`inline-block h-2.5 w-2.5 rounded-full ${s.dot}`} />
+      <span className="font-medium">{s.label}</span>
+    </div>
+  );
+}
+
+function FeedItem({ item }) {
+  const { ts, payload } = item;
+  const time = new Date(ts).toLocaleTimeString();
+  const { type, message, level, source } = normalizePayload(payload);
+
+  const tone = levelToTone(level);
+
+  return (
+    <div
+      className="rounded-xl bg-gray-900 border border-gray-700 p-3 focus-within:ring-2 ring-orange-500/40"
+      tabIndex={0}
+      aria-label={`${type || 'event'} ${message || ''}`}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className={`inline-block h-2.5 w-2.5 rounded-full ${tone.dot}`} />
+          <span className={`text-sm ${tone.text}`}>{type || 'event'}</span>
+          {source && <span className="text-xs text-gray-400">• {source}</span>}
+        </div>
+        <div className="text-xs text-gray-400">{time}</div>
+      </div>
+      {message && <div className="mt-1 text-sm">{message}</div>}
+    </div>
+  );
+}
+
+function normalizePayload(p) {
+  if (!p || typeof p !== 'object') {
+    return { type: 'event', message: typeof p === 'string' ? p : '', level: 'info', source: undefined };
+  }
+  return {
+    type: p.type || p.event || 'event',
+    message: p.message || p.msg || '',
+    level: p.level || 'info',
+    source: p.source || p.service || p.function || undefined,
+  };
+}
+
+function levelToTone(level) {
+  switch ((level || '').toLowerCase()) {
+    case 'error':
+    case 'critical':
+      return { dot: 'bg-red-500', text: 'text-red-300' };
+    case 'warn':
+    case 'warning':
+      return { dot: 'bg-orange-400', text: 'text-orange-300' };
+    case 'success':
+      return { dot: 'bg-emerald-400', text: 'text-emerald-300' };
+    default:
+      return { dot: 'bg-sky-400', text: 'text-sky-300' };
+  }
+}
+
+function genId() {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }

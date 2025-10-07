@@ -1,116 +1,86 @@
 import React from 'react';
 
 /**
+ * PUBLIC_INTERFACE
  * MetricsOverviewGrid
- * Displays a grid of key metrics in bold tiles.
- * Uses placeholder/mock data and emits onTileClick for future integration.
+ * Renders KPI cards: invocations, errors, latency p95, and cost today
+ * Props:
+ *  - invocations: number
+ *  - errors: number
+ *  - latencyP95: number (ms)
+ *  - costToday: number (USD)
  */
-// PUBLIC_INTERFACE
-export default function MetricsOverviewGrid({
-  metrics = defaultMetrics,
-  onTileClick = () => {},
-}) {
+export default function MetricsOverviewGrid({ invocations, errors, latencyP95, costToday }) {
+  const cards = [
+    {
+      key: 'invocations',
+      label: 'Invocations',
+      value: formatNumber(invocations),
+      accent: 'from-orange-500/20 to-black',
+      ring: 'ring-orange-500/40',
+    },
+    {
+      key: 'errors',
+      label: 'Errors',
+      value: formatNumber(errors),
+      accent: 'from-red-500/20 to-black',
+      ring: 'ring-red-500/40',
+    },
+    {
+      key: 'latency',
+      label: 'Latency p95',
+      value: latencyP95 != null ? `${formatNumber(latencyP95)} ms` : '—',
+      accent: 'from-emerald-500/20 to-black',
+      ring: 'ring-emerald-500/40',
+    },
+    {
+      key: 'cost',
+      label: 'Cost Today',
+      value: costToday != null ? `$${formatCurrency(costToday)}` : '—',
+      accent: 'from-sky-500/20 to-black',
+      ring: 'ring-sky-500/40',
+    },
+  ];
+
   return (
-    <section style={styles.grid} aria-label="Key metrics overview">
-      {metrics.map((m) => (
-        <button
-          key={m.key}
-          className="surface"
-          style={{
-            ...styles.tile,
-            borderColor: m.trend === 'up' ? 'rgba(16,185,129,0.35)' : m.trend === 'down' ? 'rgba(239,68,68,0.35)' : 'var(--color-border)',
-          }}
-          onClick={() => onTileClick(m)}
-          title={`View details for ${m.title}`}
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {cards.map((c, idx) => (
+        <article
+          key={c.key}
+          tabIndex={0}
+          aria-label={`${c.label} ${c.value}`}
+          className={
+            'group relative rounded-2xl bg-gradient-to-br ' +
+            c.accent +
+            ' p-0.5 focus:outline-none focus-visible:ring-2 ' +
+            c.ring
+          }
         >
-          <div style={styles.tileHead}>
-            <span
-              style={{
-                ...styles.badge,
-                background: m.trend === 'up'
-                  ? 'linear-gradient(135deg, rgba(16,185,129,0.25) 0%, rgba(0,0,0,1) 100%)'
-                  : m.trend === 'down'
-                  ? 'linear-gradient(135deg, rgba(239,68,68,0.25) 0%, rgba(0,0,0,1) 100%)'
-                  : 'var(--gradient-accent)',
-              }}
-            >
-              {m.badge}
-            </span>
+          <div className="rounded-2xl h-full w-full bg-gray-800 border border-gray-700 p-4">
+            <div className="text-sm text-gray-300">{c.label}</div>
+            <div className="mt-2 text-2xl font-bold">{c.value}</div>
+            <div className="absolute -inset-px rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </div>
-          <div style={styles.tileTitle}>{m.title}</div>
-          <div style={styles.tileValue}>{m.value}</div>
-          {m.delta && (
-            <div style={styles.tileDelta}>
-              <span
-                style={{
-                  ...styles.deltaDot,
-                  background: m.trend === 'up' ? 'var(--color-success)' : m.trend === 'down' ? 'var(--color-error)' : 'var(--color-secondary)',
-                }}
-              />
-              <span style={{ color: 'var(--color-text-muted)' }}>{m.delta}</span>
-            </div>
-          )}
-        </button>
+        </article>
       ))}
-    </section>
+    </div>
   );
 }
 
-const styles = {
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-    gap: 'var(--space-6)',
-  },
-  tile: {
-    textAlign: 'left',
-    padding: 'var(--space-6)',
-    position: 'relative',
-    overflow: 'hidden',
-    cursor: 'pointer',
-    borderWidth: 1,
-    borderStyle: 'solid',
-    transition: 'transform var(--transition-fast), box-shadow var(--transition-base), border var(--transition-fast)',
-  },
-  tileHead: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    marginBottom: 'var(--space-3)',
-  },
-  badge: {
-    color: 'var(--color-text)',
-    border: '1px solid var(--color-border)',
-    borderRadius: 'var(--radius-full)',
-    padding: '4px 10px',
-    fontSize: 'var(--text-sm)',
-  },
-  tileTitle: {
-    color: 'var(--color-text-muted)',
-    fontSize: 'var(--text-sm)',
-    marginBottom: 'var(--space-2)',
-  },
-  tileValue: {
-    fontSize: 'var(--text-3xl)',
-    fontWeight: 'var(--weight-extrabold)',
-    letterSpacing: '-0.02em',
-  },
-  tileDelta: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 'var(--space-3)',
-  },
-  deltaDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 'var(--radius-full)',
-    boxShadow: '0 0 0 2px rgba(255,255,255,0.06)',
-  },
-};
+function formatNumber(n) {
+  if (n == null || Number.isNaN(n)) return '—';
+  try {
+    return new Intl.NumberFormat().format(n);
+  } catch {
+    return String(n);
+  }
+}
 
-const defaultMetrics = [
-  { key: 'invocations', title: 'Invocations (24h)', value: '2.1M', delta: '+4.2%', trend: 'up', badge: 'All providers' },
-  { key: 'errorRate', title: 'Error Rate', value: '0.42%', delta: '-0.08%', trend: 'up', badge: 'Global' },
-  { key: 'p95Latency', title: 'P95 Latency', value: '148 ms', delta: '+7 ms', trend: 'down', badge: 'Latency' },
-  { key: 'cost', title: 'Cost (Mo.)', value: '$12,430', delta: '↓ 8% forecast', trend: 'up', badge: 'Forecast' },
-];
+function formatCurrency(n) {
+  if (n == null || Number.isNaN(n)) return '—';
+  try {
+    return new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+  } catch {
+    return String(n);
+  }
+}

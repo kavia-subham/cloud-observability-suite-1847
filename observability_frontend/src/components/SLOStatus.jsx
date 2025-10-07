@@ -1,70 +1,88 @@
 import React from 'react';
 
 /**
+ * PUBLIC_INTERFACE
  * SLOStatus
- * Shows small widgets summarizing SLOs (availability, latency, error budget).
- * Uses mock data; designed for future API integration.
+ * Displays summary of SLO conformance including uptime, error budget, and current status with simple pills.
+ * Props:
+ *  - data: {
+ *      uptime: number (0-100),
+ *      errorBudgetRemaining: number (0-100),
+ *      objectives?: Array<{ name: string, target: string, status: 'good'|'warning'|'bad' }>,
+ *    }
  */
-// PUBLIC_INTERFACE
-export default function SLOStatus({ slos = defaultSLOs }) {
+export default function SLOStatus({ data }) {
+  const uptime = data?.uptime ?? null;
+  const budget = data?.errorBudgetRemaining ?? null;
+  const objectives = Array.isArray(data?.objectives) ? data.objectives : [];
+
   return (
-    <section style={styles.wrap} aria-label="SLO status widgets">
-      {slos.map((slo) => (
-        <div key={slo.key} className="surface" style={styles.card} title={slo.description}>
-          <div style={styles.cardHead}>
-            <span style={{ ...styles.dot, background: statusToColor[slo.status] }} />
-            <span style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>{slo.category}</span>
-          </div>
-          <div style={styles.cardTitle}>{slo.title}</div>
-          <div style={styles.cardValue}>
-            {slo.value}
-            {slo.unit && <span style={styles.unit}>{slo.unit}</span>}
-          </div>
-          {slo.meta && <div style={styles.meta}>{slo.meta}</div>}
+    <div
+      className="rounded-2xl bg-gray-800 border border-gray-700 p-4"
+      role="region"
+      aria-label="SLO Status"
+    >
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <h3 className="text-lg font-semibold">SLO Status</h3>
+          <p className="text-gray-400 text-sm">Live conformance to defined objectives</p>
         </div>
-      ))}
-    </section>
+        <div className="flex items-center gap-4">
+          <StatPill label="Uptime" value={uptime != null ? `${uptime.toFixed(3)}%` : '—'} color="emerald" />
+          <StatPill label="Error Budget" value={budget != null ? `${budget.toFixed(1)}%` : '—'} color="sky" />
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+        {objectives.length === 0 ? (
+          <div className="text-gray-400 text-sm">No SLOs configured.</div>
+        ) : (
+          objectives.map((o, i) => (
+            <ObjectiveItem key={`${o?.name ?? 'obj'}-${i}`} name={o?.name} target={o?.target} status={o?.status} />
+          ))
+        )}
+      </div>
+    </div>
   );
 }
 
-const styles = {
-  wrap: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(3, minmax(0,1fr))',
-    gap: 'var(--space-6)',
-  },
-  card: {
-    padding: 'var(--space-5)',
-    border: '1px solid var(--color-border)',
-    borderRadius: 'var(--radius-lg)',
-    boxShadow: 'var(--elevation-1)',
-  },
-  cardHead: {
-    display: 'flex', alignItems: 'center', gap: 8, marginBottom: 'var(--space-2)',
-  },
-  dot: { width: 10, height: 10, borderRadius: '50%' },
-  cardTitle: {
-    color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-2)',
-  },
-  cardValue: {
-    fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-extrabold)', letterSpacing: '-0.02em',
-  },
-  unit: {
-    fontSize: 'var(--text-md)', marginLeft: 6, color: 'var(--color-text-muted)',
-  },
-  meta: {
-    marginTop: 'var(--space-2)', color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)',
-  },
-};
+function StatPill({ label, value, color = 'emerald' }) {
+  const map = {
+    emerald: 'bg-emerald-500/20 text-emerald-200 border-emerald-600/40',
+    sky: 'bg-sky-500/20 text-sky-200 border-sky-600/40',
+    orange: 'bg-orange-500/20 text-orange-200 border-orange-600/40',
+    red: 'bg-red-500/20 text-red-200 border-red-600/40',
+  };
+  const cls = map[color] || map.emerald;
+  return (
+    <div className={`rounded-full border ${cls} px-3 py-1 text-sm`} aria-label={`${label} ${value}`}>
+      <span className="font-medium">{label}:</span> <span className="ml-1">{value}</span>
+    </div>
+  );
+}
 
-const statusToColor = {
-  good: '#10B981',
-  watch: '#F97316',
-  bad: '#EF4444',
-};
+function ObjectiveItem({ name = 'Objective', target = '—', status = 'good' }) {
+  const statusMap = {
+    good: { dot: 'bg-emerald-400', text: 'text-emerald-300', label: 'Good' },
+    warning: { dot: 'bg-orange-400', text: 'text-orange-300', label: 'Warning' },
+    bad: { dot: 'bg-red-500', text: 'text-red-300', label: 'Breached' },
+  };
+  const s = statusMap[status] || statusMap.good;
 
-const defaultSLOs = [
-  { key: 'availability', title: 'Availability', category: 'SLO', value: '99.92', unit: '%', status: 'good', meta: 'Error budget burn: 2%', description: 'Uptime over the last 30 days' },
-  { key: 'latency', title: 'Latency P95', category: 'SLO', value: '148', unit: 'ms', status: 'watch', meta: '+7ms vs 7d avg', description: 'Latency performance' },
-  { key: 'errors', title: 'Error Budget', category: 'SLO', value: '78', unit: '%', status: 'good', meta: 'Remaining for window', description: 'Budget remaining' },
-];
+  return (
+    <div
+      className="rounded-xl bg-gray-900 border border-gray-700 p-3 flex items-center justify-between"
+      tabIndex={0}
+      aria-label={`${name} target ${target} status ${s.label}`}
+    >
+      <div>
+        <div className="font-medium">{name}</div>
+        <div className="text-sm text-gray-400">Target: {target}</div>
+      </div>
+      <div className={`flex items-center gap-2 ${s.text}`}>
+        <span className={`inline-block h-2.5 w-2.5 rounded-full ${s.dot}`} />
+        <span className="text-sm">{s.label}</span>
+      </div>
+    </div>
+  );
+}
