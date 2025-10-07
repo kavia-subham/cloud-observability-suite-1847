@@ -22,7 +22,12 @@ export { default as InvocationsTable } from './functions/InvocationsTable';
 export { default as ServiceGraph } from './topology/ServiceGraph';
 export { default as NodeDetailsPanel } from './topology/NodeDetailsPanel';
 
-// Settings
+ // Settings
 export { default as ProfileSection } from './settings/ProfileSection';
 export { default as ThemeToggleSection } from './settings/ThemeToggleSection';
 export { default as NotificationsSection } from './settings/NotificationsSection';
+
+// Security
+export { default as FindingsTable } from './security/FindingsTable';
+export { default as FindingDetails } from './security/FindingDetails';
+export { default as WorkflowModal } from './security/WorkflowModal';
