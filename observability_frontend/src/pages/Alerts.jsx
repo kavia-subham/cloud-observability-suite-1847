@@ -4,7 +4,7 @@ import AnomalyDetails from '../components/anomalies/AnomalyDetails';
 import RootCausePanel from '../components/anomalies/RootCausePanel';
 import AiExplanation from '../components/anomalies/AiExplanation';
 import apiClient from '../services/apiClient';
-import wsClient from '../services/wsClient';
+import wsClient, { getClient } from '../services/wsClient';
 import '../styles/theme.css';
 import '../styles/tokens.css';
 
@@ -48,6 +48,15 @@ const Alerts = () => {
 
   // WebSocket live updates for anomalies
   useEffect(() => {
+    // Ensure WS is connected (idempotent)
+    const client = getClient();
+    wsClient.connect();
+
+    // Track connection status
+    const offOpen = wsClient.on('open', () => setLiveConnected(true));
+    const offClose = wsClient.on('close', () => setLiveConnected(false));
+    const offError = wsClient.on('error', () => setLiveConnected(false));
+
     let unsub = null;
     try {
       unsub = wsClient.subscribe('anomalies_live', (msg) => {
@@ -78,6 +87,10 @@ const Alerts = () => {
     }
     return () => {
       if (typeof unsub === 'function') unsub();
+      // Detach listeners; do not disconnect globally as other pages may use the socket
+      if (typeof offOpen === 'function') offOpen();
+      if (typeof offClose === 'function') offClose();
+      if (typeof offError === 'function') offError();
     };
   }, []);
 
