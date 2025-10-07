@@ -20,6 +20,15 @@ The frontend runs independently using mock data by default for a smooth local ex
 6. Production build:
    - npm run build
 
+## Preview/502 Troubleshooting
+If you see a 502 Bad Gateway in the preview:
+- The preview proxy expects the app on port 3000. If another dev server is already running on 3000, the proxy may show 502.
+- Ensure only one dev server is running and that it binds to port 3000.
+- Use the non-interactive start script to force port 3000 and avoid prompts:
+  - npm run start:ci
+  - This sets PORT=3000 HOST=0.0.0.0 BROWSER=none CI=true.
+- In development, mocks are enabled by default unless REACT_APP_USE_MOCKS=false. This avoids backend connectivity failures blocking startup.
+
 ## Environment Variables
 The app reads environment variables prefixed with REACT_APP_ at build time. Edit .env or provide them via your environment when running build/start.
 
@@ -32,7 +41,7 @@ The app reads environment variables prefixed with REACT_APP_ at build time. Edit
   - Example: ws://localhost:8080/ws or wss://api.example.com/ws
   - Used by: src/config/env.js and src/services/wsClient.js
 - REACT_APP_USE_MOCKS
-  - Description: Enables the local mock layer (REST and simulated WS ticks). In development, mocks default to enabled unless explicitly set to false.
+  - Description: Enables the local mock layer (REST and simulated WS ticks). In development, mocks default to enabled unless REACT_APP_USE_MOCKS is explicitly set to 'false'.
   - Values: true or false
   - Used by: src/index.js, src/config/env.js, src/services/apiClient.js
 - REACT_APP_AUTH_PROVIDER
@@ -55,7 +64,7 @@ How it works:
   - In development, mocks are enabled by default unless REACT_APP_USE_MOCKS is explicitly set to 'false'.
 - REST mocks:
   - src/mocks/server.js installs fetch interceptors using handlers from src/mocks/handlers.js.
-  - Handlers serve dataset files from src/mocks/data/*.json for endpoints like /api/metrics/… /api/costs … /api/security …
+  - Handlers serve dataset files from src/mocks/data/*.json for endpoints like /api/metrics… /api/costs … /api/security …
 - WebSocket simulation:
   - src/mocks/handlers.js includes createWsMockEmitters that periodically publish synthetic events (e.g., topology:update, metrics:tick, anomalies:new) to simulate live updates.
 - Mock-aware API helpers:
@@ -159,4 +168,3 @@ When your backend is available:
 - Testing: react-scripts test is configured; add unit and integration tests as you extend features.
 - Performance: API client includes simple backoff on transient errors; prefer incremental loading and memoization in components as needed.
 - Contribution: Keep README and .env.example in sync with src/config/env.js, src/services/apiClient.js, and src/services/wsClient.js when adding or changing env flags.
-
