@@ -128,3 +128,21 @@ a:hover {
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
+
+/* Screen-reader-only utility (kept visible when needed with sr-only-fix class use) */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Provide a default gradient token if not defined by tokens.css */
+:root, :root[data-theme="dark"] {
+  --gradient-primary: linear-gradient(180deg, rgba(249, 115, 22, 0.15), rgba(0, 0, 0, 0.2));
+}

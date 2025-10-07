@@ -54,14 +54,85 @@ export default function MainLayout() {
     if (isMobile) setMobileOpen(false);
   }, [location.pathname, isMobile]);
 
+  // Inline SVG icons (lightweight, no deps)
+  const Icon = {
+    dashboard: (props) => (
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...props}>
+        <path fill="currentColor" d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zM13 3v6h8V3h-8z" />
+      </svg>
+    ),
+    topology: (props) => (
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...props}>
+        <path fill="currentColor" d="M10 3h4v4h-4V3zM4 17h4v4H4v-4zm12 0h4v4h-4v-4zM7 10h10v2H7v-2zm3 2v3H8v-3h2zm6 0v3h-2v-3h2z" />
+      </svg>
+    ),
+    functions: (props) => (
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...props}>
+        <path fill="currentColor" d="M7 4h10v2H9l4 6-4 6h8v2H7l5-8L7 4z" />
+      </svg>
+    ),
+    alerts: (props) => (
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...props}>
+        <path fill="currentColor" d="M1 21h22L12 2 1 21zm12-3h-2v2h2v-2zm0-6h-2v5h2v-5z" />
+      </svg>
+    ),
+    security: (props) => (
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...props}>
+        <path fill="currentColor" d="M12 2l7 4v6c0 5-3.8 9.7-7 10-3.2-.3-7-5-7-10V6l7-4z" />
+      </svg>
+    ),
+    cost: (props) => (
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...props}>
+        <path fill="currentColor" d="M12 1a11 11 0 100 22 11 11 0 000-22zm1 17.9V20h-2v-1.9a4.5 4.5 0 01-3-1.8l1.7-1a2.7 2.7 0 002.3 1.2c1.1 0 1.9-.5 1.9-1.2 0-.6-.5-1-1.8-1.3l-1-.2c-2-.5-3-1.4-3-3.1 0-1.7 1.4-2.9 3.3-3.2V4h2v1.5c1.3.2 2.3.9 3 1.9l-1.6 1a2.6 2.6 0 00-2.2-1.1c-1.1 0-1.8.5-1.8 1.1 0 .6.5 1 1.9 1.3l.9.2c2.1.5 3.1 1.4 3.1 3.1 0 1.8-1.4 3.1-3.4 3.4z" />
+      </svg>
+    ),
+    settings: (props) => (
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...props}>
+        <path fill="currentColor" d="M19.14 12.94a7.97 7.97 0 000-1.88l2.03-1.58a.5.5 0 00.12-.64l-1.92-3.32a.5.5 0 00-.6-.22l-2.39.96a7.9 7.9 0 00-1.63-.95l-.36-2.54a.5.5 0 00-.5-.43h-3.84a.5.5 0 00-.5.43l-.36 2.54c-.57.23-1.12.54-1.63.95l-2.39-.96a.5.5 0 00-.6.22L2.7 8.84a.5.5 0 00.12.64l2.03 1.58c-.05.31-.08.63-.08.94s.03.63.08.94L2.82 14.5a.5.5 0 00-.12.64l1.92 3.32c.13.22.39.3.6.22l2.39-.96c.51.4 1.06.72 1.63.95l.36 2.54c.05.24.26.43.5.43h3.84c.24 0 .45-.19.5-.43l.36-2.54c.57-.23 1.12-.54 1.63-.95l2.39.96c.21.08.47 0 .6-.22l1.92-3.32a.5.5 0 00-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1112 8a3.5 3.5 0 010 7.5z" />
+      </svg>
+    ),
+    signout: (props) => (
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...props}>
+        <path fill="currentColor" d="M10 17l1.4-1.4L9.8 14H20v-2H9.8l1.6-1.6L10 9l-4 4 4 4zM4 5h8V3H4a2 2 0 00-2 2v14a2 2 0 002 2h8v-2H4V5z" />
+      </svg>
+    ),
+    signin: (props) => (
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...props}>
+        <path fill="currentColor" d="M14 7l-1.4 1.4L13.2 10H4v2h9.2l-1.6 1.6L14 15l4-4-4-4zM20 19h-8v2h8a2 2 0 002-2V5a2 2 0 00-2-2h-8v2h8v14z" />
+      </svg>
+    ),
+    menu: (props) => (
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...props}>
+        <path fill="currentColor" d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z" />
+      </svg>
+    ),
+    close: (props) => (
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...props}>
+        <path fill="currentColor" d="M18.3 5.71L12 12l6.3 6.29-1.41 1.42L10.59 13.4 4.29 19.7 2.88 18.3 9.17 12 2.88 5.71 4.29 4.29l6.3 6.3 6.29-6.3z" />
+      </svg>
+    ),
+    chevrons: {
+      left: (props) => (
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...props}>
+          <path fill="currentColor" d="M11.41 7.41L10 6l-6 6 6 6 1.41-1.41L6.83 12l4.58-4.59zM20 6l-6 6 6 6 1.41-1.41L16.83 12l4.58-4.59L20 6z" />
+        </svg>
+      ),
+      right: (props) => (
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...props}>
+          <path fill="currentColor" d="M12.59 16.59L14 18l6-6-6-6-1.41 1.41L17.17 12l-4.58 4.59zM3 18l6-6-6-6-1.41 1.41L6.83 12l-4.58 4.59L3 18z" />
+        </svg>
+      ),
+    },
+  };
+
   const navItems = [
-    { to: '/', label: 'Dashboard', icon: '📊' },
-    { to: '/topology', label: 'Topology', icon: '🗺️' },
-    { to: '/functions', label: 'Functions', icon: 'λ' },
-    { to: '/alerts', label: 'Alerts', icon: '🚨' },
-    { to: '/security', label: 'Security', icon: '🛡️' },
-    { to: '/cost', label: 'Cost', icon: '💰' },
-    { to: '/settings', label: 'Settings', icon: '⚙️' },
+    { to: '/', label: 'Dashboard', icon: <Icon.dashboard /> },
+    { to: '/topology', label: 'Topology', icon: <Icon.topology /> },
+    { to: '/functions', label: 'Functions', icon: <Icon.functions /> },
+    { to: '/alerts', label: 'Alerts', icon: <Icon.alerts /> },
+    { to: '/security', label: 'Security', icon: <Icon.security /> },
+    { to: '/cost', label: 'Cost', icon: <Icon.cost /> },
+    { to: '/settings', label: 'Settings', icon: <Icon.settings /> },
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -143,7 +214,7 @@ export default function MainLayout() {
             style={styles.collapseBtn}
             title={isMobile ? 'Menu' : 'Toggle sidebar'}
           >
-            {isMobile ? (mobileOpen ? '✕' : '☰') : collapsed ? '»' : '«'}
+            {isMobile ? (mobileOpen ? <Icon.close /> : <Icon.menu />) : collapsed ? <Icon.chevrons.right /> : <Icon.chevrons.left />}
           </button>
           {!isMobile && !collapsed && <div style={styles.brandText}>Cloud Observability</div>}
           {isMobile && <div style={styles.brandText}>Menu</div>}
@@ -164,10 +235,10 @@ export default function MainLayout() {
                 title={item.label}
                 aria-current={active ? 'page' : undefined}
               >
-                <span aria-hidden="true" style={{ marginRight: (!isMobile && collapsed) ? 0 : 'var(--space-3)' }}>
+                <span aria-hidden="true" style={{ marginRight: (!isMobile && collapsed) ? 0 : 'var(--space-3)', display: 'inline-flex' }}>
                   {item.icon}
                 </span>
-                {(!isMobile && !collapsed) || isMobile ? <span>{item.label}</span> : null}
+                {((!isMobile && !collapsed) || isMobile) && <span>{item.label}</span>}
               </NavLink>
             );
           })}
@@ -185,7 +256,8 @@ export default function MainLayout() {
               title="Sign out"
               aria-label="Sign out"
             >
-              {(!isMobile && !collapsed) || isMobile ? 'Sign out' : '🔓'}
+              <span aria-hidden="true" style={{ marginRight: 'var(--space-2)', display: 'inline-flex' }}><Icon.signout /></span>
+              {((!isMobile && !collapsed) || isMobile) && 'Sign out'}
             </button>
           ) : (
             <button
@@ -197,7 +269,8 @@ export default function MainLayout() {
               title="Sign in"
               aria-label="Sign in"
             >
-              {(!isMobile && !collapsed) || isMobile ? 'Sign in' : '🔐'}
+              <span aria-hidden="true" style={{ marginRight: 'var(--space-2)', display: 'inline-flex' }}><Icon.signin /></span>
+              {((!isMobile && !collapsed) || isMobile) && 'Sign in'}
             </button>
           )}
         </div>
@@ -215,11 +288,13 @@ export default function MainLayout() {
               style={{ ...styles.collapseBtn, marginRight: 'var(--space-3)' }}
               className="btn-outline"
             >
-              {isMobile ? (mobileOpen ? '✕' : '☰') : collapsed ? '»' : '«'}
+              {isMobile ? (mobileOpen ? <Icon.close /> : <Icon.menu />) : collapsed ? <Icon.chevrons.right /> : <Icon.chevrons.left />}
             </button>
 
             <div style={styles.searchWrap} className="surface app-surface-ring" role="search">
-              <span aria-hidden="true" style={{ marginRight: 8 }}>🔎</span>
+              <span aria-hidden="true" style={{ marginRight: 8, display: 'inline-flex' }}>
+                <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 5 1.5-1.5-5-5zM9.5 14A4.5 4.5 0 119.5 5a4.5 4.5 0 010 9z"/></svg>
+              </span>
               <input
                 placeholder="Search functions, traces, alerts..."
                 style={styles.searchInput}
@@ -334,6 +409,10 @@ const styles = {
     borderRadius: 'var(--radius-md)',
     padding: '10px 12px',
     cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 'var(--space-2)',
   },
   main: {
     display: 'flex',

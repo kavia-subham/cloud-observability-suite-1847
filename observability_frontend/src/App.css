@@ -84,6 +84,11 @@
   box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.8);
 }
 
+/* Active/hover states for sidebar NavLink anchors when using inline styles for base */
+a[aria-current="page"] {
+  text-decoration: none;
+}
+
 /* Responsive design for mobile */
 @media (max-width: 768px) {
   .theme-toggle {
