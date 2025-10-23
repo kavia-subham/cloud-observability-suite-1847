@@ -54,12 +54,6 @@ export function createMockHandlers() {
 
     { method: 'GET', path: '/api/security/summary', status: 200, json: security.summary },
     { method: 'GET', path: '/api/security/findings', status: 200, json: security.findings },
-    // individual finding by id (simple first match)
-    { method: 'GET', path: '/api/security/findings/sec-001', status: 200, json: security.findings[0] },
-    { method: 'GET', path: '/api/security/findings/sec-002', status: 200, json: security.findings[1] },
-    // workflow execution mock (POST); respond with updated status
-    { method: 'POST', path: '/api/security/findings/sec-001/workflow', status: 200, json: { ok: true, status: 'approved' } },
-    { method: 'POST', path: '/api/security/findings/sec-002/workflow', status: 200, json: { ok: true, status: 'resolved' } },
     { method: 'GET', path: '/api/security/workflows', status: 200, json: security.workflows }
   ];
 }

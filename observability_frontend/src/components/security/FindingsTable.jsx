@@ -14,8 +14,6 @@ export default function FindingsTable({
   selectedId = null,
   title = 'Security Findings',
   style: styleProp = {},
-  loading = false,
-  error = '',
 }) {
   const [q, setQ] = useState('');
   const [sev, setSev] = useState('all');
@@ -90,16 +88,6 @@ export default function FindingsTable({
         </div>
       </div>
 
-      {/* States */}
-      {loading && (
-        <div className="text-muted" style={{ padding: 'var(--space-4)' }}>Loading...</div>
-      )}
-      {!loading && error && (
-        <div role="alert" style={{ padding: 'var(--space-4)', color: '#FCA5A5' }}>
-          {error}
-        </div>
-      )}
-
       {/* Table */}
       <div role="table" aria-label="Findings table" style={styles.table}>
         <div role="row" style={{ ...styles.tr, ...styles.th }}>
@@ -134,7 +122,7 @@ export default function FindingsTable({
               <div role="cell" style={styles.td}>
                 <span style={{ ...styles.badge, background: sevBg[f.severity] }}>{f.severity.toUpperCase()}</span>
               </div>
-              <div role="cell" style={styles.td}>{f.owner || f.service || '-'}</div>
+              <div role="cell" style={styles.td}>{f.owner}</div>
               <div role="cell" style={styles.td}>
                 <span style={{ ...styles.badge, background: statusBg[f.status] }}>{labelStatus(f.status)}</span>
               </div>

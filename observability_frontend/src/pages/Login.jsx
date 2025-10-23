@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { usePostLoginRedirect, useAuth } from '../state/AuthContext';
-import { UICard as Card, UIInput as Input, UIButton as Button } from '../components';
 
 /**
  * Simple login page with mock authentication using AuthContext.
@@ -26,31 +25,46 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black text-white px-4">
-      <Card className="w-full max-w-md p-8">
-        <h1 className="text-2xl font-bold">Sign in</h1>
-        <p className="text-white/70 mb-6">Access your observability workspace</p>
-        <form onSubmit={onSubmit} className="space-y-4">
-          <Input
-            label="Email"
-            placeholder="you@company.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="username"
-          />
-          <Input
-            label="Password"
-            type="password"
-            placeholder="••••••••"
-            value={pwd}
-            onChange={(e) => setPwd(e.target.value)}
-            autoComplete="current-password"
-          />
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading ? 'Signing in...' : 'Continue'}
-          </Button>
+    <div className="container">
+      <div className="surface" style={{ padding: 'var(--space-8)', marginTop: '10vh' }}>
+        <h1 className="h2" style={{ marginTop: 0 }}>Sign in</h1>
+        <p className="text-muted" style={{ marginBottom: 'var(--space-6)' }}>
+          Access your observability workspace
+        </p>
+        <form onSubmit={onSubmit}>
+          <div style={{ display: 'grid', gap: 'var(--space-4)', maxWidth: 420 }}>
+            <input
+              placeholder="Email"
+              style={styles.input}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="username"
+            />
+            <input
+              placeholder="Password"
+              type="password"
+              style={styles.input}
+              value={pwd}
+              onChange={(e) => setPwd(e.target.value)}
+              autoComplete="current-password"
+            />
+            <button className="btn" type="submit" disabled={loading}>
+              {loading ? 'Signing in...' : 'Continue'}
+            </button>
+          </div>
         </form>
-      </Card>
+      </div>
     </div>
   );
 }
+
+const styles = {
+  input: {
+    appearance: 'none',
+    border: '1px solid var(--color-border)',
+    background: 'var(--color-surface)',
+    color: 'var(--color-text)',
+    padding: '12px 14px',
+    borderRadius: 'var(--radius-md)',
+  },
+};
